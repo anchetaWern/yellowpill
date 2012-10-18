@@ -1,0 +1,44 @@
+	.table{
+		width: 200px;
+		border: 5px solid grey;
+		float: left;
+		margin: 20px;
+		padding: 2px;
+		background-color: white;
+	}
+	
+	.tbl_header {
+		font-weight: bold;
+		margin: 0px auto;
+		padding: 7px;
+		background-color: orange;
+		cursor: move;
+	}
+	
+	.tbl_fields {
+		padding: 5px;
+		background-color: white;
+	}
+	
+	.fields {
+		margin-bottom: 3px;
+		padding: 5px;
+		cursor: move;
+		border: 1px solid lightgray;
+		z-index: 2;
+		background-color: white;
+	}
+	
+	.table:hover {
+		border: 5px solid orange;
+	}
+	
+	.fields:hover {
+		border: 2px solid #BADA55;
+		background-color: #BADA55;
+		
+	}
+
+	.active{
+		border: 5px solid Orangered;
+	}
