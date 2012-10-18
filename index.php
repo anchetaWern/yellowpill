@@ -7,22 +7,25 @@ $fields = $yp->getFields();
 <link rel="stylesheet" href="style.css"/>
 <link rel="stylesheet" href="http://code.jquery.com/ui/1.9.0/themes/base/jquery-ui.css" />
 <link rel="stylesheet" href="libs/foundation/stylesheets/foundation.css"/>
+<link rel="stylesheet" href="libs/noty/css/jquery.noty.css">
+<link rel="stylesheet" href="libs/noty/css/noty_theme_default.css"/>
+
 <div id="container">
 <?php
 if(!empty($tables)){
 	foreach($tables as $table){
 ?>
-		<div class="table drag_tbl">
+		<div class="table drag_tbl" id="<?php echo $table; ?>">
 			<div class="tbl_header">
 				<input type="text" class="tbl_name" value="<?php echo $table; ?>" placeholder="table name">
-				<input type="checkbox" class="connnector"/>
+				<input type="checkbox" class="connector"/>
 			</div>
 			<div class="tbl_fields">
 			<?php 
 			foreach($fields[$table] as $field){
 			?>
-			<div class="fields drag_field" id="<?php echo $table . "-" .$field['field_name']; ?>">
-				<input type="text" class="field_name" value="<?php echo $field['field_name']; ?>"  placeholder="field name">
+			<div class="fields drag_field" id="<?php echo $table . "-" . $field['field_name']; ?>">
+				<input type="text" class="field_name" value="<?php echo $field['field_name']; ?>" id="field_<?php echo $field['field_name']; ?>" placeholder="field name">
 			</div>
 			<?php
 			}
@@ -37,7 +40,7 @@ if(!empty($tables)){
 	<div class="table drag_tbl">
 		<div class="tbl_header">
 			<input type="text" class="tbl_name" placeholder="table name">
-			<input type="checkbox" class="connnector"/>
+			<input type="checkbox" class="connector"/>
 		</div>
 		<div class="tbl_fields">
 			<div class="fields drag_field">
@@ -51,13 +54,47 @@ if(!empty($tables)){
 <script src="http://code.jquery.com/jquery-1.8.2.js"></script>
 <script src="http://code.jquery.com/ui/1.9.0/jquery-ui.js"></script>
 <script src="keymaster.js"></script>
-
+<script src="libs/noty/js/jquery.noty.js"></script>
 <script>
 	var current_table;
 
-	$(".drag_tbl").draggable(); 
+	var noty_success = {
+		"text":"Operation was successfully completed!",
+		"layout":"top",
+		"type":"success",
+		"textAlign":"center",
+		"easing":"swing",
+		"animateOpen":{"height":"toggle"},
+		"animateClose":{"height":"toggle"},
+		"speed":500,
+		"timeout":5000,
+		"closable":true,
+		"closeOnSelfClick":true
+	}
 	
-	$(".drag_field").draggable();
+	var noty_err = {
+		"text":"An error occured, please try again",
+		"layout":"top",
+		"type":"error",
+		"textAlign":"center",
+		"easing":"swing",
+		"animateOpen":{"height":"toggle"},
+		"animateClose":{"height":"toggle"},
+		"speed":500,
+		"timeout":5000,
+		"closable":true,
+		"closeOnSelfClick":true
+	}
+
+	var makeDraggable = function(){
+		$(".drag_tbl").draggable(); 
+		$(".drag_field").draggable();
+	};
+
+	var linkedTables = [];
+	var linkedFields = [];
+
+	makeDraggable();
 
 	$(".table").droppable({
 		drop: function(event, ui){
@@ -75,13 +112,13 @@ if(!empty($tables)){
 		var tbl_id = $(this).find('.tbl_name').val();
 		current_table = tbl_id;
 
-		$(".table").removeClass('active');
+		$(".table").removeClass('active_table');
 
-		if($(this).is('.active')){
+		if($(this).is('.active_table')){
 
-			$(this).removeClass('active');
+			$(this).removeClass('active_table');
 		}else{
-			$(this).addClass('active');
+			$(this).addClass('active_table');
 		}
 	});
 
@@ -91,26 +128,30 @@ if(!empty($tables)){
 		field_container.append(field);
 		var table = $('#' + current_table + " .tbl_fields");
 		table.append(field_container);
-		field_container.draggable();
 		field.focus();
+
+		makeDraggable();
 	};
 
-	var createTable = function(){
+	var generateTable = function(){
 
 		var table = $("<div>").addClass("table drag_tbl");
 		var tbl_header = $("<div>").addClass("tbl_header");
-		var tbl_name = $("<input>").attr("placeholder", "table name").addClass("tbl_name");
+		var tbl_name = $("<input>").attr({"type" : "text", "placeholder" : "table name"}).addClass("tbl_name");
+		var tbl_connector = $("<input>").attr({"type" : "checkbox", "class" : "connector"});
 		var tbl_field = $("<div>").addClass("tbl_fields");
 		var field_container = $("<div>").addClass("fields drag_field");
 		var field = $("<input>").attr({"type" : "text", "placeholder" : "field name"}).addClass("field_name");
-		console.log(tbl_name);
+
 		tbl_header.append(tbl_name);
+		tbl_header.append(tbl_connector);
 		table.append(tbl_header);
 		field_container.append(field);
 		tbl_field.append(field_container);
 		table.append(tbl_field);
 		$('#container').append(table);
 
+		makeDraggable();
 	};
 
 	var datatypes = {
@@ -184,7 +225,7 @@ if(!empty($tables)){
 		return field.replaceArray(shorts, longs);
 	};
 
-	var createTbl = function(){
+	var createTable = function(){
 		var fields = [];
 		var expanded_field = [];
 		$('#' + current_table + " .tbl_fields .fields").each(function(){
@@ -199,21 +240,26 @@ if(!empty($tables)){
 			{"action" : "create_tbl", "table" : current_table, "fields" : expanded_field},
 			function(response){
 				console.log("Created Table");
+				noty_success.text = "Successfully created table!";
+				noty(noty_success);
 			}
 		);
 	};
 
-	var dropTbl = function(){
+	var dropTable = function(){
 		$.post(
 			"invoker.php", 
 			{"action" : "drop_tbl", "table" : current_table},
 			function(response){
 				console.log(response);
+				$('#' + current_table).remove();
+				noty_success.text = "Successfully dropped table!";
+				noty(noty_success);
 			}
 		);
 	};
 
-	var modifyTbl = function(){
+	var modifyTable = function(){
 		$.post(
 			"invoker.php", 
 			{
@@ -222,33 +268,110 @@ if(!empty($tables)){
 			},
 			function(response){
 				console.log(response);
+				noty_success.text = "Successfully modified table!";
+				noty(noty_success);
 			}
 		);
 	};
 
-	key('e', function(){ 
-		modifyTbl();
-	
+	var createJoinFlag = function(table_name){
+		var flagtext;
+		if(linkedTables.length == 1){
+			flagtext = "main";
+		}else{
+			flagtext = "child";
+		}
+		var flag = $("<div>").addClass("flag").text(flagtext);
+		flag.insertAfter($('#' + table_name + ' .tbl_fields'));
+		console.log(table_name);
+	};
+
+	var joinTables = function(){
+		var child_table = linkedTables[1];
+		var main_table = linkedTables[0];
+		var child_field = linkedFields[1];
+		var main_field = linkedFields[0];
+		$.post(
+			"invoker.php", 
+			{
+			"action" : "join_tbl",
+			"child_table" : child_table, "main_table" : main_table, 
+			"child_field" : child_field, "main_field" : main_field
+			},
+			function(response){
+				console.log(response);
+			}
+		);
+	};
+
+	$(".connector").live('click', function(){
+		var table_name = $($(this).parents('div')[1]).attr("id");
+
+		if($(this).is(":checked")){
+			if(linkedTables.length != 2){
+				if(!linkedTables[table_name]){
+					linkedTables.push(table_name);
+					createJoinFlag(table_name);
+				}
+				
+			}else{
+				noty_err.text = "Only two tables can be linked at a time!";
+				noty(noty_err);
+			}
+		}
+		
+	});
+
+	key('e', function(){ //edit table
+		modifyTable();
 	});
 
 	key('f', function(){ 
 		createField();
-	
 	});
 
-	key('t', function(){ 
+	key('t', function(){ //generate table
+		generateTable();
+	});
+
+	key('s', function(){ //create table
 		createTable();
 	});
 
-	key('s', function(){ 
-		createTbl();
+	key('d', function(){ //drop table
+		dropTable();
 	});
 
-	key('d', function(){ 
-		dropTbl();
+	key('j', function(){ //join tables
+		joinTables();
+	});
+
+	key('ctrl+c', function(){ 
+		
 	});
 
 
+	$(".fields").live('click', function(){
+		var field_name = $(this).find('input').attr('id');
+	
+		if($(this).is('.active_field')){
+
+			$(this).removeClass('active_field');
+		}else{
+			if(linkedFields.length != 2){
+				if(!linkedFields[field_name]){
+					linkedFields.push(field_name);
+					
+				}
+				
+			}else{
+				noty_err.text = "Only two fields can be linked at a time!";
+				noty(noty_err);
+			}
+
+			$(this).addClass('active_field');
+		}
+	});
 
 	$("input").live('keyup', function(e){
 		var isTable = $(this).is('.tbl_name');
@@ -259,7 +382,6 @@ if(!empty($tables)){
     		createField();	
     	}
     }
-
 
     var id = $(this).val();
     $(this).attr("id", "field_" +id);

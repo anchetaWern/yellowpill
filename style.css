@@ -39,6 +39,17 @@
 		
 	}
 
-	.active{
+	.active_table{
 		border: 5px solid Orangered;
 	}
+
+	.active_field{
+		background-color: Orangered;
+	}
+
+	.flag {
+    width: 100%;
+    background-color: #BADB11;
+    padding: 7px;
+    text-align: center;
+}
