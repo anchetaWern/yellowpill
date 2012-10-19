@@ -1,8 +1,9 @@
 <?php
 class yp{
 	
+	public $dbname;
+
 	private $db;
-	private $dbname;
 	private $mode;
 
 	public function __construct($host, $user, $password, $database, $mode){
@@ -30,31 +31,39 @@ class yp{
 		}
 		
 		$query .= " )";
-		if($this->mode == 0){
-			return $query;
-		}else{
-			$this->db->query($query);
-		}
+
+		$query = $this->trimQuery($query);
+		return $this->getResult($query);
 	}
 
 	public function addFields($table, $fields){
-		$query = "ALTER TABLE " . $table . " ";
-		if(is_array($fields)){
-			$field_count = count($fields);
-			foreach($fields as $key => $field){
-				$query .= "ADD " . $field;
-				if($field_count - 1 !== $key){
-					$query .= ", ";
+		if($this->hasTable($table) == 1){
+			$query = "ALTER TABLE " . $table . " ";
+			if(is_array($fields)){
+				$field_count = count($fields);
+				foreach($fields as $key => $field){
+					$fields_data = explode(":", $field);
+					if($this->hasField($table, $fields_data[0]) === 0){
+						$field = str_replace(":", "", $field);
+						$query .= "ADD " . $field;
+
+						if($field_count - 1 !== $key){
+							$query .= ", ";
+						}
+
+					}
+				}
+			}else{
+				$fields_data = explode(":", $fields);
+				if($this->hasField($table, $fields_data[0]) === 0){
+					$fields = str_replace(":", "", $fields);
+					$query .= "ADD " . $fields;
 				}
 			}
-		}else{
-			$query .= $fields;
-		}
-		
-		if($this->mode == 0){
-			return $query;
-		}else{
-			$this->db->query($query);
+
+			$query = $this->trimQuery($query);
+			return $this->getResult($query);
+
 		}
 	}
 
@@ -78,43 +87,66 @@ class yp{
 			}
 		}
 
-		if($this->mode == 0){
-			return $query;
-		}else{
-			$this->db->query($query);
-		}
+		$query = $this->trimQuery($query);
+		return $this->getResult($query);
 	}
 
-	public function modifyFields($table, $fields){
+	public function modifyFields($table, $old_fields, $new_fields){
 
 		$query = "ALTER TABLE " . $table . " ";
-		if(is_array($fields)){
+		if(is_array($old_fields)){
 			
-			$field_count = count($fields);
+			$field_count = count($old_fields);
 
-			foreach($fields as $key => $field){
+			foreach($new_fields as $key => $field){
+				
 				$fields_data = explode(":", $field);
-				if($this->hasField($table, $fields_data[0]) === 1){
-					$fields = str_replace(":", "", $field);
-					$query .= "MODIFY " . $field;
+				if($this->hasField($table, $old_fields[$key]) === 1){
+					$field = str_replace(":", "", $field);
+					$query .= "CHANGE " . $old_field . " " . $field;
 					if($field_count - 1 !== $key){
 						$query .= ", ";
 					}
 				}
+
 			}
 		}else{
-				$fields_data = explode(":", $fields);
-				if($this->hasField($table, $fields_data[0]) === 1){
-					$fields = str_replace(":", "", $fields);
-					$query .= "MODIFY " . $fields;
+				$fields_data = explode(":", $new_fields);
+				if($this->hasField($table, $old_fields) === 1){
+					$fields = str_replace(":", "", $new_fields);
+					$query .= "CHANGE " . $old_fields . " " . $fields;
 				}
 		}
 
+		$query = $this->trimQuery($query);
+		return $this->getResult($query);
+
+	}
+
+	public function alterField($table, $old_field, $new_field){
+
+		$query = "ALTER TABLE " . $table .  " CHANGE " . $old_field . " " . $new_field;
+		$query = $this->trimQuery($query);
+		return $this->getResult($query);
+	}	
+
+	private function getResult($query){
+		$result = 0;
 		if($this->mode == 0){
-			return $query;
+			$result = $query;
 		}else{
-			$this->db->query($query);
+			$result = $this->db->query($query);
 		}
+		return $result;
+	}
+
+	private function trimQuery($query){
+		$query = trim($query);
+
+		if(substr($query, -1, 1) === ","){
+			$query = substr($query, 0, strlen($query) - 1);
+		}
+		return $query;		
 	}
 
 	public function createLink($childTable, $mainTable, $childField, $mainField){
@@ -122,11 +154,8 @@ class yp{
 		$query .= " REFERENCES " . $mainTable . "(" . $mainField . ")";
 		
 
-		if($this->mode == 0){
-			return $query;
-		}else{
-			$this->db->query($query);
-		}
+		$query = $this->trimQuery($query);
+		return $this->getResult($query);
 	}
 
 	public function dropTable($table){
@@ -140,7 +169,7 @@ class yp{
 	public function getTables(){
 		$tables = array();
 		$query = $this->db->query("
-			SELECT TABLE_NAME FROM information_schema.COLUMNS 
+			SELECT TABLE_NAME FROM INFORMATION_SCHEMA.COLUMNS 
 			WHERE TABLE_SCHEMA = '$this->dbname' GROUP BY TABLE_NAME");
 		if($query->num_rows > 0){
 			while($row = $query->fetch_object()){
@@ -154,32 +183,68 @@ class yp{
 		$fields = array();
 		$query = $this->db->query("
 			SELECT DISTINCT COLUMN_NAME, TABLE_NAME, DATA_TYPE, 
-			COLUMN_DEFAULT, COLUMN_KEY, IS_NULLABLE, CHARACTER_OCTET_LENGTH
+			COLUMN_DEFAULT, COLUMN_KEY, IS_NULLABLE, COLUMN_TYPE, EXTRA
 			FROM INFORMATION_SCHEMA.COLUMNS
 			WHERE TABLE_SCHEMA='$this->dbname'
 		");
 		if($query->num_rows > 0){
 			while($row = $query->fetch_object()){
+				$default_data = "";
+				if(!empty($row->COLUMN_DEFAULT)){
+					$default_data = " DEF " . $row->COLUMN_DEFAULT;
+				}
 				$fields[$row->TABLE_NAME][] = array(
-				'field_name'=>$row->COLUMN_NAME,
-				'data_type'=>$row->DATA_TYPE, 'default_data'=>$row->COLUMN_DEFAULT,
-				'column_key'=>$row->COLUMN_KEY, 'nullable'=>$row->IS_NULLABLE,
-				'length'=>$row->CHARACTER_OCTET_LENGTH
+				'field_name' =>$row->COLUMN_NAME,
+				'data_type' =>$row->DATA_TYPE, 'default_data' =>$default_data,
+				'column_key' =>$row->COLUMN_KEY, 'nullable' =>$row->IS_NULLABLE,
+				'column_type' =>strtoupper($row->COLUMN_TYPE),
+				'extra' =>$row->EXTRA
 				);
 			}
 		}
 		return $fields;
 	}
 
-	private function hasField($table, $field){
+	public function getTableLinks(){
+		$tablelinks = array();
+		$query = $this->db->query("
+			SELECT REFERENCED_TABLE_NAME, REFERENCED_COLUMN_NAME, TABLE_NAME, 
+			COLUMN_NAME FROM INFORMATION_SCHEMA.KEY_COLUMN_USAGE 
+			WHERE TABLE_SCHEMA = '$this->dbname' AND REFERENCED_TABLE_NAME IS NOT NULL
+		");
+		
+		if($query->num_rows > 0){
+			while($row = $query->fetch_object()){
+				$tablelinks[$row->TABLE_NAME][] = array(
+					"main_table" => $row->REFERENCED_TABLE_NAME,
+					"main_field" => $row->REFERENCED_COLUMN_NAME,
+					"child_table" => $row->TABLE_NAME,
+					"child_field" => $row->COLUMN_NAME
+				);
+			}
+		}	
+
+		return $tablelinks;
+	}
+
+	public function hasField($table, $field){
 		$query = $this->db->query("SELECT * 
-		FROM information_schema.COLUMNS 
+		FROM INFORMATION_SCHEMA.COLUMNS 
 		WHERE TABLE_SCHEMA = '$this->dbname' 
 		AND TABLE_NAME = '$table' 
 		AND COLUMN_NAME = '$field'");
 
 		return $query->num_rows;
 
+	}
+
+	public function hasTable($table){
+		$query = $this->db->query("
+			SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES 
+			WHERE TABLE_NAME = '$table' AND TABLE_SCHEMA = '$this->dbname' 
+		");
+
+		return $query->num_rows;
 	}
 }
 ?>

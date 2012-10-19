@@ -3,6 +3,7 @@ require_once('yp.php');
 $yp = new yp("localhost", "root", "1234", "redbean", 1);
 $tables = $yp->getTables();
 $fields = $yp->getFields();
+$links = $yp->getTableLinks();
 ?>
 <link rel="stylesheet" href="style.css"/>
 <link rel="stylesheet" href="http://code.jquery.com/ui/1.9.0/themes/base/jquery-ui.css" />
@@ -10,7 +11,8 @@ $fields = $yp->getFields();
 <link rel="stylesheet" href="libs/noty/css/jquery.noty.css">
 <link rel="stylesheet" href="libs/noty/css/noty_theme_default.css"/>
 
-<div id="container">
+<div id="container" style="display:none;">
+<h3><?php echo $yp->dbname; ?></h3>	
 <?php
 if(!empty($tables)){
 	foreach($tables as $table){
@@ -24,8 +26,10 @@ if(!empty($tables)){
 			<?php 
 			foreach($fields[$table] as $field){
 			?>
-			<div class="fields drag_field" id="<?php echo $table . "-" . $field['field_name']; ?>">
-				<input type="text" class="field_name" value="<?php echo $field['field_name']; ?>" id="field_<?php echo $field['field_name']; ?>" placeholder="field name">
+			<div class="fields drag_field" id="<?php echo $field['field_name']; ?>">
+				<input type="text" 
+				class="field_name" 
+				value="<?php echo $field['field_name'] . ": " . $field['column_type'] . " " . $field['default_data'] . " " . $field['column_key'] . " " . $field['nullable'] . " " . $field['extra']; ?>" id="field_<?php echo $field['field_name']; ?>" placeholder="field name" data-fieldname="<?php echo $field['field_name']; ?>">
 			</div>
 			<?php
 			}
@@ -57,6 +61,7 @@ if(!empty($tables)){
 <script src="libs/noty/js/jquery.noty.js"></script>
 <script>
 	var current_table;
+	var current_field;
 
 	var noty_success = {
 		"text":"Operation was successfully completed!",
@@ -155,13 +160,14 @@ if(!empty($tables)){
 	};
 
 	var datatypes = {
+			'TXT' : 'TEXT',
 			'TI' : 'TINYINT', 'SI' : 'SMALLINT',
 			'MI' : 'MEDIUMINT',
 			'I' : 'INT', 'BI' : 'BINGINT', 
 			'B' : 'BIT', 'F' : 'FLOAT' , 'DBL' : 'DOUBLE',
 			'DC' : 'DECIMAL', 'C' : 'CHAR', 'VC' : 'VARCHAR',
 			'TT' : 'TINYTEXT',
-			'TXT' : 'TEXT', 'MT' : 'MEDIUMTEXT',
+			'MT' : 'MEDIUMTEXT',
 			'LT' : 'LONGTEXT',
 			'BIN' : 'BINARY', 'VBIN' : 'VARBINARY',
 			'TB' : 'TINYBLOB',
@@ -184,10 +190,47 @@ if(!empty($tables)){
 		var options = {
 			'AI' : 'AUTO_INCREMENT',
 			'NN' : 'NOT NULL',
-			'D' : 'DEFAULT',
+			'DEF' : 'DEFAULT',
 			'CT' : 'CURRENT_TIMESTAMP'
 		};
 
+
+	var invert = function (obj) {
+	  var new_obj = {};
+
+	  for (var prop in obj) {
+	    if(obj.hasOwnProperty(prop)) {
+	      new_obj[obj[prop]] = prop;
+	    }
+	  }
+
+	  return new_obj;
+	};
+
+	var inverted_datatypes = invert(datatypes);
+	var inverted_keys = {
+		'PRI' : 'PK'
+	};
+
+	var inverted_options = {
+		'auto_increment id=' : 'AI',
+		'YES' : 'NN',
+		'NO' : 'N',
+		'CURRENT_TIMESTAMP' : 'CT',
+		"id=" : " "
+	};
+
+	var getShort = function(long){
+	  var short;
+	  if(inverted_datatypes[long]){
+	    short = inverted_datatypes[long];
+	  }else if(inverted_options[long]){
+	    short = inverted_options[long];
+	  }else if(inverted_keys[long]){
+	    short = inverted_keys[long];
+	  }
+	  return short;
+	};
 
 	var getLong = function(short){
 	  var long;
@@ -201,7 +244,9 @@ if(!empty($tables)){
 	  return long;
 	};
 
-	var shortRegex = /\b(TI|SI|MI|I|BI|B|F|DBL|DC|C|VC|TT|T|MT|LT|BIN|VBIN|TB|BL|MB|LB|D|Y|DT|TS|PT|LS|POLY|GEO|MP|MLS|MPOLY|GEOCOL|E|S|PK|FK|AI|NN|D|CT)\b/g;
+	var shortRegex = /\b(TI|SI|MI|I|BI|B|F|DBL|DC|C|VC|TT|T|MT|LT|BIN|VBIN|TB|BL|MB|LB|D|Y|DT|TS|PT|LS|POLY|GEO|MP|MLS|MPOLY|GEOCOL|E|S|PK|FK|AI|NN|DEF|CT|TXT)\b/g;
+
+	var longRegex = /\b(auto_increment id=)|(id=)|(TINYINT|SMALLINT|MEDIUMINT|INT|BINGINT|BIT|FLOAT|DOUBLE|DECIMAL|CHAR|VARCHAR|TINYTEXT|TEXT|MEDIUMTEXT|LONGTEXT|BINARY|VARBINARY|TINYBLOB|BLOB|MEDIUMBLOB|LONGBLOB|DATE|TIME|YEAR|DATETIME|TIMESTAMP|POINT|LINESTRING|POLYGON|GEOMETRY|MULTIPOINT|MULTILINESTRING|MULTIPOLYGON|GEOMETRYCOLLECTION|ENUM|SET|NOT NULL|DEFAULT|CURRENT_TIMESTAMP|FOREIGN KEY|YES|NO|PRI|CURRENT_TIMESTAMP)\b/g;
 
 	String.prototype.replaceArray = function(find, replace) {
 	  var replaceString = this;
@@ -211,6 +256,7 @@ if(!empty($tables)){
 	  return replaceString;
 	}
 
+
 	var expandString = function(regex, field){
 		var shorts = [];
 		var longs = [];
@@ -219,21 +265,47 @@ if(!empty($tables)){
 		    shorts.push(match[0]);
 		    longs.push(getLong(match[0]));
 		}
-		shorts.push(":");
-		longs.push(" ");
+
 
 		return field.replaceArray(shorts, longs);
 	};
 
-	var createTable = function(){
-		var fields = [];
+	var shortenString = function(regex, field){
+		var shorts = [];
+		var longs = [];
+		var match;
+		while ((match = regex.exec(field)) != null){
+		    longs.push(match[0]);
+		    shorts.push(getShort(match[0]));
+		}
+
+		return field.replaceArray(longs, shorts);
+	};
+
+
+	var shortened_field = [];
+	$('.tbl_fields input[type!=""]').each(function(){
+		var field = $(this).val();
+		
+		shortened_field.push(shortenString(longRegex, field));
+		$(this).val(shortenString(longRegex, field));
+	});
+
+	$("#container").show();
+
+	var expandFields = function(){
 		var expanded_field = [];
 		$('#' + current_table + " .tbl_fields .fields").each(function(){
 			var field = $(this).attr("id");
 			
-			 expanded_field.push(expandString(shortRegex,field));
-			 fields.push(expanded_field);
+			 expanded_field.push(expandString(shortRegex, field));
+			 
 		});
+		return expanded_field;
+	};
+
+	var createTable = function(){
+		var expanded_field = expandFields();
 
 		$.post(
 			"invoker.php", 
@@ -259,12 +331,26 @@ if(!empty($tables)){
 		);
 	};
 
-	var modifyTable = function(){
+	var modifyTable = function(old_field){
+
+		if(isExisting('has_tbl') === 1){
+			current_field = expandString(shortRegex, current_field);
+
+			if(isExisting('has_field', old_field)){
+				updateTable('modify_field', old_field);
+			}else{
+				updateTable('add_field', old_field);
+			}
+
+		}
+	};
+
+	var updateTable = function(action, old_field){
 		$.post(
 			"invoker.php", 
 			{
-			"action" : "modify_tbl", "table" : current_table, 
-			"fields" : fields, "options" : options
+			"action" : action, "table" : current_table, 
+			"fields" : current_field, "old_field" : old_field, "new_field" : current_field
 			},
 			function(response){
 				console.log(response);
@@ -304,6 +390,22 @@ if(!empty($tables)){
 		);
 	};
 
+	var isExisting = function(action, old_field){
+		var field_count = 0;
+		$.ajax({
+			type: "POST",
+			url : "invoker.php",
+			data : {"action" : action, "table" : current_table, "field" : old_field},
+			async : false
+		}).done(function(response){
+			field_count = response;
+		});
+
+		return Number(field_count);
+	};
+
+
+
 	$(".connector").live('click', function(){
 		var table_name = $($(this).parents('div')[1]).attr("id");
 
@@ -322,9 +424,6 @@ if(!empty($tables)){
 		
 	});
 
-	key('e', function(){ //edit table
-		modifyTable();
-	});
 
 	key('f', function(){ 
 		createField();
@@ -351,9 +450,9 @@ if(!empty($tables)){
 	});
 
 
-	$(".fields").live('click', function(){
+	$(".field").live('click', function(){
 		var field_name = $(this).find('input').attr('id');
-	
+		
 		if($(this).is('.active_field')){
 
 			$(this).removeClass('active_field');
@@ -392,5 +491,19 @@ if(!empty($tables)){
     	current_table = id;
     	$($(this).parents('div')[1]).attr("id", id);
     }
+	});
+
+	$(".field_name").live('click', function(){
+		if($(this).val() !== ""){
+			var field_name = $(this).attr("id");
+			field_name = field_name.split("_");
+			current_field = field_name[1];
+			
+		}
+	});
+
+	$(".field_name").live('blur', function(){
+		var old_field = $(this).data('fieldname');
+		modifyTable(old_field);
 	});
 </script>
