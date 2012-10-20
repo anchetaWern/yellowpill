@@ -13,6 +13,12 @@ switch($action){
 		echo $yp->createTable($table, $fields);
 	break;
 
+	case 'rename_tbl':
+		$current_tablename = $_POST['current_table'];
+		$new_tablename = $_POST['new_table'];
+		echo $yp->renameTable($current_tablename, $new_tablename); 
+	break;
+
 	case 'drop_tbl':
 		$table = $_POST['table'];
 		echo $yp->dropTable($table);

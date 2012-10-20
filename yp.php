@@ -36,6 +36,15 @@ class yp{
 		return $this->getResult($query);
 	}
 
+	public function renameTable($table, $table_name){
+		$query = "RENAME TABLE " . $table . " TO " . $table_name;
+
+		if($this->hasTable($table) === 1){
+			$query = $this->trimQuery($query);
+			return $this->getResult($query);	
+		}
+	}
+
 	public function addFields($table, $fields){
 		if($this->hasTable($table) == 1){
 			$query = "ALTER TABLE " . $table . " ";

@@ -63,6 +63,7 @@ if(!empty($tables)){
 	var current_table;
 	var current_field;
 	var old_field;
+	var old_table;
 
 	var noty_success = {
 		"text":"Operation was successfully completed!",
@@ -515,5 +516,19 @@ if(!empty($tables)){
 			current_field = $(this).val();
 			modifyTable();
 		}
+	});
+
+	$(".tbl_name").live('click', function(){
+		old_table = $.trim($(this).val());
+	});
+
+	$(".tbl_name").live('blur', function(){
+		var new_table = $.trim($(this).val());
+		$.post("invoker.php", 
+			{"action" : "rename_tbl", "current_table" : old_table, "new_table" : new_table}, 
+			function(response){
+				console.log(response);
+			}
+		);
 	});
 </script>
