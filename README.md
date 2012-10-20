@@ -1,73 +1,43 @@
-yellowpill
+Yellowpill
 ==========
 
 This application will be used for quick database schema generation and visualization
 
+##Current Features
 
-# [Laravel](http://laravel.com) - A PHP Framework For Web Artisans
+- Creating tables
+- Updating names, data types and options for existing fields
+- Adding new fields to existing tables
+- Joining tables
+- Deleting tables
 
-Laravel is a clean and classy framework for PHP web development. Freeing you
-from spaghetti code, Laravel helps you create wonderful applications using
-simple, expressive syntax. Development should be a creative experience that you
-enjoy, not something that is painful. Enjoy the fresh air.
 
-[Official Website & Documentation](http://laravel.com)
+##Current Issues
 
-## Feature Overview
+- Response messages are not accurate
 
-- Simple routing using Closures or controllers.
-- Views and templating.
-- Driver based session and cache handling.
-- Database abstraction with query builder.
-- Authentication.
-- Migrations.
-- PHPUnit Integration.
-- A lot more.
 
-## A Few Examples
+##Todo
 
-### Hello World:
+- Creating new database
+- Improve response messages. Currently the application does not issue an error if the operation cannot be performed or something went wrong
 
-```php
-<?php
+- Ordering of fields
+- Visualization on which tables are connected
+- Dropping database 
+- Transferring current fields from current table to another
 
-Route::get('/', function()
-{
-	return "Hello World!";
-});
-```
 
-### Passing Data To Views:
+##Configuration
+
+In order to use this application you need to ```mysqli``` extension enabled. 
+You can enable it on the ```php.ini``` file.
 
 ```php
-<?php
-
-Route::get('user/(:num)', function($id)
-{
-	$user = DB::table('users')->find($id);
-
-	return View::make('profile')->with('user', $user);
-});
+$yp = new yp(HOST, USER, PASSWORD, DATABASE, OPTION);
 ```
 
-### Redirecting & Flashing Data To The Session:
+Options:
 
-```php
-<?php
-
-return Redirect::to('profile')->with('message', 'Welcome Back!');
-```
-
-## Contributing to Laravel
-
-Contributions are encouraged and welcome; however, please review the Developer
-Certificate of Origin in the "license.txt" file included in the repository. All
-commits must be signed off using the `-s` switch.
-
-```bash
-git commit -s -m "this commit will be signed off automatically!"
-```
-
-## License
-
-Laravel is open-sourced software licensed under the MIT License.
+0 - debug mode returns the actual query that is to be executed 
+1 - executes the query
