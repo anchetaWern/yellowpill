@@ -89,7 +89,7 @@ The following shortcuts for field definitions are used in the app.
 			'FK' : 'FOREIGN KEY',
 			'AI' : 'AUTO_INCREMENT',
 			'NN' : 'NOT NULL',
-			'N' : 'NULL',
+			'NX' : 'NULL',
 			'DEF' : 'DEFAULT',
 			'CT' : 'CURRENT_TIMESTAMP'
 ```
@@ -97,6 +97,7 @@ The following shortcuts for field definitions are used in the app.
 ##Todo
 
 - Creating new database
+- Selecting database to be used
 - Improve response messages. Currently the application does not issue an error if the operation cannot be performed or something went wrong
 - Ordering of fields
 - Visualization on which tables are connected and which fields connects the tables

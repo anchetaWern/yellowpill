@@ -33,7 +33,7 @@ switch($action){
 
 	case 'add_field':
 		$table = $_POST['table'];
-		$fields = $_POST['fields'];
+		$fields = $_POST['new_field'];
 		echo $yp->addFields($table, $fields);
 	break;
 

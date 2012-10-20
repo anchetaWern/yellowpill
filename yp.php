@@ -53,7 +53,7 @@ class yp{
 				foreach($fields as $key => $field){
 					$fields_data = explode(":", $field);
 					if($this->hasField($table, $fields_data[0]) === 0){
-						$field = str_replace(":", "", $field);
+						
 						$query .= "ADD " . $field;
 
 						if($field_count - 1 !== $key){
@@ -65,7 +65,7 @@ class yp{
 			}else{
 				$fields_data = explode(":", $fields);
 				if($this->hasField($table, $fields_data[0]) === 0){
-					$fields = str_replace(":", "", $fields);
+					
 					$query .= "ADD " . $fields;
 				}
 			}
@@ -111,7 +111,7 @@ class yp{
 				
 				$fields_data = explode(":", $field);
 				if($this->hasField($table, $old_fields[$key]) === 1){
-					$field = str_replace(":", "", $field);
+					
 					$query .= "CHANGE " . $old_field . " " . $field;
 					if($field_count - 1 !== $key){
 						$query .= ", ";
@@ -122,8 +122,8 @@ class yp{
 		}else{
 				$fields_data = explode(":", $new_fields);
 				if($this->hasField($table, $old_fields) === 1){
-					$fields = str_replace(":", "", $new_fields);
-					$query .= "CHANGE " . $old_fields . " " . $fields;
+					
+					$query .= "CHANGE " . $old_fields . " " . $new_fields;
 				}
 		}
 
@@ -155,6 +155,8 @@ class yp{
 		if(substr($query, -1, 1) === ","){
 			$query = substr($query, 0, strlen($query) - 1);
 		}
+
+		$query = str_replace(":", "", $query);
 		return $query;		
 	}
 

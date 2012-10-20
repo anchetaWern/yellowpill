@@ -7,5 +7,5 @@ $yp = new yp("localhost", "root", "1234", "redbean", 1);
 //$table = "aaa";
 //$fields = array("id:  INT(23)  DEFAULT 31  NOT NULL");
 //echo $yp->modifyFields($table, $fields);
-echo $yp->renameTable("aaa", "bbb");
+echo $yp->dropTable("tbl_awesome");
 ?>
