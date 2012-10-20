@@ -1,6 +1,6 @@
 <?php
 require_once('yp.php');
-$yp = new yp("localhost", "root", "1234", "redbean", 0);
+$yp = new yp("localhost", "root", "1234", "redbean", 1);
 
 $action = $_POST['action'];
 

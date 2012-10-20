@@ -62,6 +62,7 @@ if(!empty($tables)){
 <script>
 	var current_table;
 	var current_field;
+	var old_field;
 
 	var noty_success = {
 		"text":"Operation was successfully completed!",
@@ -134,7 +135,7 @@ if(!empty($tables)){
 		var table = $('#' + current_table + " .tbl_fields");
 		table.append(field_container);
 		field.focus();
-
+		field.click();
 		makeDraggable();
 	};
 
@@ -190,6 +191,7 @@ if(!empty($tables)){
 		var options = {
 			'AI' : 'AUTO_INCREMENT',
 			'NN' : 'NOT NULL',
+			'N' : 'NULL',
 			'DEF' : 'DEFAULT',
 			'CT' : 'CURRENT_TIMESTAMP'
 		};
@@ -244,7 +246,7 @@ if(!empty($tables)){
 	  return long;
 	};
 
-	var shortRegex = /\b(TI|SI|MI|I|BI|B|F|DBL|DC|C|VC|TT|T|MT|LT|BIN|VBIN|TB|BL|MB|LB|D|Y|DT|TS|PT|LS|POLY|GEO|MP|MLS|MPOLY|GEOCOL|E|S|PK|FK|AI|NN|DEF|CT|TXT)\b/g;
+	var shortRegex = /\b(TI|SI|MI|I|BI|B|F|DBL|DC|C|VC|TT|T|MT|LT|BIN|VBIN|TB|BL|MB|LB|D|Y|DT|TS|PT|LS|POLY|GEO|MP|MLS|MPOLY|GEOCOL|E|S|PK|FK|AI|NN|DEF|CT|TXT|N)\b/g;
 
 	var longRegex = /\b(auto_increment id=)|(id=)|(TINYINT|SMALLINT|MEDIUMINT|INT|BINGINT|BIT|FLOAT|DOUBLE|DECIMAL|CHAR|VARCHAR|TINYTEXT|TEXT|MEDIUMTEXT|LONGTEXT|BINARY|VARBINARY|TINYBLOB|BLOB|MEDIUMBLOB|LONGBLOB|DATE|TIME|YEAR|DATETIME|TIMESTAMP|POINT|LINESTRING|POLYGON|GEOMETRY|MULTIPOINT|MULTILINESTRING|MULTIPOLYGON|GEOMETRYCOLLECTION|ENUM|SET|NOT NULL|DEFAULT|CURRENT_TIMESTAMP|FOREIGN KEY|YES|NO|PRI|CURRENT_TIMESTAMP)\b/g;
 
@@ -331,21 +333,24 @@ if(!empty($tables)){
 		);
 	};
 
-	var modifyTable = function(old_field){
+	var modifyTable = function(){
 
 		if(isExisting('has_tbl') === 1){
 			current_field = expandString(shortRegex, current_field);
-
-			if(isExisting('has_field', old_field)){
-				updateTable('modify_field', old_field);
+			
+			if(isExisting('has_field')){
+				updateTable('modify_field');
 			}else{
-				updateTable('add_field', old_field);
+				updateTable('add_field');
 			}
 
 		}
 	};
 
-	var updateTable = function(action, old_field){
+
+
+	var updateTable = function(action){
+
 		$.post(
 			"invoker.php", 
 			{
@@ -353,7 +358,7 @@ if(!empty($tables)){
 			"fields" : current_field, "old_field" : old_field, "new_field" : current_field
 			},
 			function(response){
-				console.log(response);
+				//console.log(response);
 				noty_success.text = "Successfully modified table!";
 				noty(noty_success);
 			}
@@ -369,7 +374,7 @@ if(!empty($tables)){
 		}
 		var flag = $("<div>").addClass("flag").text(flagtext);
 		flag.insertAfter($('#' + table_name + ' .tbl_fields'));
-		console.log(table_name);
+		
 	};
 
 	var joinTables = function(){
@@ -390,7 +395,12 @@ if(!empty($tables)){
 		);
 	};
 
-	var isExisting = function(action, old_field){
+	var isExisting = function(action){
+		
+		old_field = $.trim(old_field);
+		current_table = $.trim(current_table);
+		console.log(old_field);
+
 		var field_count = 0;
 		$.ajax({
 			type: "POST",
@@ -494,16 +504,16 @@ if(!empty($tables)){
 	});
 
 	$(".field_name").live('click', function(){
-		if($(this).val() !== ""){
-			var field_name = $(this).attr("id");
-			field_name = field_name.split("_");
-			current_field = field_name[1];
-			
-		}
+		var field = $(this).val();
+		var field_data = field.split(":");
+		old_field = field_data[0];
 	});
 
 	$(".field_name").live('blur', function(){
-		var old_field = $(this).data('fieldname');
-		modifyTable(old_field);
+		if($(this).val() !== ""){
+
+			current_field = $(this).val();
+			modifyTable();
+		}
 	});
 </script>
