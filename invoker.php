@@ -1,11 +1,13 @@
 <?php
+session_start();
+require_once('config.php');
 require_once('yp.php');
-$yp = new yp("localhost", "root", "1234", "redbean", 1);
+$yp = new yp(HOST, USER, PASSWORD, $_SESSION['db'], 1);
 
 $action = $_POST['action'];
 
 switch($action){
-	
+
 	case 'create_tbl':
 		$table = $_POST['table'];
 		$fields = $_POST['fields'];

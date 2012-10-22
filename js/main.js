@@ -92,7 +92,7 @@
 		field_container.append(field);
 		tbl_field.append(field_container);
 		table.append(tbl_field);
-		$('#container').append(table);
+		$('.existing_tables').append(table);
 
 		makeDraggable();
 	};
@@ -170,7 +170,7 @@
 	var inverted_options = {
 		'auto_increment' : 'AI',
 		'YES' : 'NN',
-		'NO' : 'N',
+		'NO' : 'XX',
 		'CURRENT_TIMESTAMP' : 'CT',
 		"id=" : " "
 	};
@@ -245,7 +245,7 @@
 		$(this).val(shortenString(longRegex, field));
 	});
 
-	$("#container").show();
+	$(".existing_tables").show();
 
 	var expandFields = function(){
 		var expanded_field = [];
@@ -458,7 +458,7 @@
 		}
 	});
 
-	$("input").live('keyup', function(e){
+	$(".existing_tables input").live('keyup', function(e){
 		var isTable = $(this).is('.tbl_name');
     var isField = $(this).is('.field_name');
 
@@ -473,9 +473,11 @@
 
    	if(isField){
    		$(this).parents('.fields').attr("id", id);
+
     }else if(isTable){
     	current_table = id;
     	$($(this).parents('div')[1]).attr("id", id);
+    	
     }
 	});
 
