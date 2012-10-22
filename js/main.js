@@ -545,6 +545,8 @@
 		});
 	};
 
+
+
 	key('s+q', function(){
 		selectQuery();
 	});

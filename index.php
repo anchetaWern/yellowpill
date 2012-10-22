@@ -39,6 +39,22 @@ $databases = $db->query("
 			<textarea id="query_string">
 			</textarea>
 		</div>
+		<label for="">Query Options</label>
+		<div class="query_options">
+
+			<div class="select_query active_option" data-qoption="select">
+				Select
+			</div>
+			<div class="update_query" data-qoption="update">
+				Update
+			</div>
+			<div class="delete_query" data-qoption="delete">
+				Delete
+			</div>
+			<div class="insert_query" data-qoption="insert">
+				Insert
+			</div>
+		</div>
 	</div>
 	
 	<div class="existing_tables"  style="display:none;">
@@ -65,6 +81,8 @@ $databases = $db->query("
 <script src="keymaster.js"></script>
 <script src="libs/noty/js/jquery.noty.js"></script>
 <script>
+	var query_option;
+
 	$("#btn_connect").click(function(){
 		var db = $.trim($("#db").val());
 		$(".existing_tables").load("get_db.php", {"db" : db}, function(){
@@ -78,5 +96,21 @@ $databases = $db->query("
 					shortenFields();
 		});
 
+	});
+
+	$(".query_options div").hover(function(){
+		$(this).addClass('hover_option');
+	}, function(){
+		$(this).removeClass('hover_option');
+	});
+
+	$(".query_options div").click(function(){
+		query_option = $(this).data('qoption');
+		$(".query_options div").removeClass('active_option');
+		if($(this).is('.active_option')){
+			$(this).removeClass('active_option');
+		}else{
+			$(this).addClass('active_option');
+		}
 	});
 </script>

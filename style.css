@@ -52,7 +52,7 @@
   height: 160px;
 }
 
-.hover_field{
+.hover_field, .hover_option{
 	border: 2px solid #BADA55;
 	background-color: #BADA55;
 }
@@ -66,11 +66,43 @@
 }
 
 #query_string {
-  width: 57%;
+  width: 100%;
   height:80px;
     
 }
 .databases {
     float: left;
     margin-right: 30px;
+    width: 237px;
+   
+}
+
+.query_options{
+	float: left;
+	
+	height: 130px;
+	width: 271px;
+}
+
+.query_options div{
+	width: 110px;
+	height: 43px;
+	border: 1px solid lightgrey;
+	float: left;
+	margin: 10px;
+	padding: 13px;
+	font-weight: bold;
+	text-align: center;
+	cursor: pointer;
+}
+
+.queries {
+    width: 695px;
+    height: 133px;
+    float: left;
+    margin-right: 20px;
+}
+
+.active_option{
+	background-color:orange;
 }
