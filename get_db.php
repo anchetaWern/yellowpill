@@ -1,20 +1,20 @@
 <?php
+session_start();
 require_once('config.php');
 require_once('db.php');
 require_once('yp.php');
 
 $db = new db(HOST, USER, PASSWORD);
 
+$_SESSION['db'] = $_POST['db'];
 
 if($db->hasDatabase($_POST['db']) === 1){
 	$yp = new yp(HOST, USER, PASSWORD, $_POST['db'], 1);
-	$_SESSION['db'] = $_POST['db'];
-
+	
 	$tables = $yp->getTables();
 	$fields = $yp->getFields();
 	$links = $yp->getTableLinks();
 ?>
-<h3><?php echo $yp->dbname; ?></h3>	
 <?php
 if(!empty($tables)){
 	foreach($tables as $table){

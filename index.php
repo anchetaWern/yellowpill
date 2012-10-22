@@ -14,23 +14,31 @@ $databases = $db->query("
 
 <div id="container">
 	<div id="form_container">
-		<label for="db">Database</label>
-		<?php
-		if($databases->num_rows > 0){ ?>
-		<input type="text" name="db" id="db" autocomplete="off" list="db_list">
-		<datalist id="db_list">
+		<div class="databases">
+			<label for="db">Database</label>
 			<?php
-			while($row = $databases->fetch_object()){
-			?>
-				<option value="<?php echo $row->SCHEMA_NAME; ?>"><?php echo $row->SCHEMA_NAME; ?></option>
+			if($databases->num_rows > 0){ ?>
+			<input type="text" name="db" id="db" autocomplete="off" list="db_list">
+			<datalist id="db_list">
+				<?php
+				while($row = $databases->fetch_object()){
+				?>
+					<option value="<?php echo $row->SCHEMA_NAME; ?>"><?php echo $row->SCHEMA_NAME; ?></option>
+				<?php
+				}
+				?> 
+			</datalist>
 			<?php
 			}
-			?> 
-		</datalist>
-		<?php
-		}
-		?>
-		<button type="button" class="small button" id="btn_connect" >Connect</button>
+			?>
+			<button type="button" class="small button" id="btn_connect" >Connect</button>
+		</div>
+
+		<div class="queries">
+			<label for="query_string">Query String</label>
+			<textarea id="query_string">
+			</textarea>
+		</div>
 	</div>
 	
 	<div class="existing_tables"  style="display:none;">

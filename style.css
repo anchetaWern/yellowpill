@@ -29,16 +29,6 @@
 	background-color: white;
 }
 
-.table:hover {
-	border: 5px solid orange;
-}
-
-.fields:hover {
-	border: 2px solid #BADA55;
-	background-color: #BADA55;
-	
-}
-
 .active_table{
 	border: 5px solid Orangered;
 }
@@ -55,6 +45,32 @@
 }
 
 #form_container {
-  width: 226px;
+  width: 100%;
   padding: 20px;
+  border: 1px solid grey;
+  background-color: ghostwhite;
+  height: 160px;
+}
+
+.hover_field{
+	border: 2px solid #BADA55;
+	background-color: #BADA55;
+}
+
+.hover_table{
+	border: 5px solid orange;
+}
+
+#db{
+	width: 200px;
+}
+
+#query_string {
+  width: 57%;
+  height:80px;
+    
+}
+.databases {
+    float: left;
+    margin-right: 30px;
 }

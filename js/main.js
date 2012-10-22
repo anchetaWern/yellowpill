@@ -31,6 +31,8 @@
 		"closeOnSelfClick":true
 	};
 
+
+
 	var makeDraggable = function(){
 		$(".drag_field, .drag_tbl").draggable(); 
 		
@@ -94,24 +96,59 @@
 
 	var linkedTables = [];
 	var linkedFields = [];
+	var selectedTables = {};
+	var selectedFields = {};
 
-	
 	makeSortable();
 
+	$(".table").hover(function(){
+		if(!$(this).is(".active_table")){
+			$(this).addClass('hover_table');
+			
+		}
+	}, function(){
+		$(this).removeClass('hover_table');
+	});
 
-
-	$(".table").live('click', function(){
+	$(".table").live('click', function(e){
 		var tbl_id = $(this).find('.tbl_name').val();
 		current_table = tbl_id;
 
-		$(".table").removeClass('active_table');
+		$(this).removeClass('hover_table');
+		var table_name = $(this).attr('id');
 
-		if($(this).is('.active_table')){
+		if(e.ctrlKey === false){
+			
+			$(".table").removeClass('active_table');
+			linkedTables = [];
+			linkedTables.push(table_name);
+			selectedTables = {};
 
-			$(this).removeClass('active_table');
 		}else{
-			$(this).addClass('active_table');
+
+
+			if($(this).is('.active_table')){
+				$(this).removeClass('active_table');
+
+			}else{
+				
+				if($('.active_table').length < 2){
+					
+					if(!linkedTables[table_name]){
+						linkedTables.push(table_name);
+						
+					}
+				}
+
+				
+			}
 		}
+
+		if(!selectedTables[table_name]){
+			selectedTables[table_name] = table_name;
+		}
+
+		$(this).addClass('active_table');
 	});
 
 	var createField = function(){
@@ -449,6 +486,84 @@
 		
 	});
 
+	var updateQueryString = function(querystring){
+		$("#query_string").val(querystring);
+	};
+
+	var getObjectLength = function(obj){
+		var count = 0;
+		for (i in obj) {
+		    if (obj.hasOwnProperty(i)){
+		        count++;
+		    }
+		}
+		return count;
+	};
+
+	var selectQuery = function(){
+		var query = "SELECT ";
+
+		var number_of_tables = getObjectLength(selectedTables);
+		var number_of_fields = getObjectLength(selectedFields);
+
+		var table_index = 1;
+		var field_index = 1;
+
+		for(var field in selectedFields){
+			query += selectedFields[field];
+
+			if(number_of_fields !== field_index){
+				query += ", ";
+			}
+			field_index++;
+		}
+
+		query += " FROM ";
+		for(var table in selectedTables){
+			query += selectedTables[table];
+			if(number_of_tables !==  table_index){
+				query += ", ";
+			}
+			table_index++;
+		}
+
+		updateQueryString(query);
+		return query;
+	};
+
+	var selectAllFields = function(){
+		$("#" + current_table + " .fields").addClass("active_field");
+		$("#" + current_table + " .fields").each(function(){
+			var field = $(this).attr("id");
+			if(linkedFields.length < 2){
+				linkedFields.push(field);
+			}
+
+			if(!selectedFields[current_table + "." + field]){
+				selectedFields[current_table + "." + field] = current_table + "." + field;
+			}
+		});
+	};
+
+	key('s+q', function(){
+		selectQuery();
+	});
+
+	key('u+q', function(){
+		updateQuery();
+	});
+
+	key('d+q', function(){
+		deleteQuery();
+	});	
+
+	key('i+q', function(){
+		insertQuery();
+	});	
+
+	key('a', function(){
+		selectAllFields();
+	});
 
 	key('f', function(){ 
 		createField();
@@ -492,32 +607,60 @@
 		dropField();
 	});
 
-
-	$(".fields").live('click', function(){
+	$(".fields").hover(function(){
+		if(!$(this).is(".active_field")){
+			$(this).addClass('hover_field');
+			
+		}
+	}, function(){
 		
-		var field_name = $(this).find('input').attr('id');
+			$(this).removeClass('hover_field');
+
+	});
+
+
+
+	$(".fields").live('click', function(e){
+		$(this).removeClass('hover_field');
+		var field_name = $(this).attr('id');
 
 		var field = $(this).find("input").val();
 		var field_data = field.split(":");
 		old_field = field_data[0];
 
-		if($(this).is('.active_field')){
-
-			$(this).removeClass('active_field');
+		if(e.ctrlKey === false){
+			
+			$(".fields").removeClass('active_field');
+			linkedFields = [];
+			linkedFields.push(field_name);
+			selectedFields = {};
 		}else{
-			if(linkedFields.length != 2){
-				if(!linkedFields[field_name]){
-					linkedFields.push(field_name);
-					
-				}
-				
-			}else{
-				noty_err.text = "Only two fields can be linked at a time!";
-				noty(noty_err);
-			}
 
-			$(this).addClass('active_field');
+
+			if($(this).is('.active_field')){
+				$(this).removeClass('active_field');
+
+			}else{
+				
+				if($('.active_field').length < 2){
+					
+					if(!linkedFields[field_name]){
+						linkedFields.push(field_name);
+						
+					}
+				}
+
+				
+			}
 		}
+
+		console.log(current_table);
+		if(!selectedFields[current_table + "." + field_name]){
+			selectedFields[current_table + "." + field_name] = current_table + "." + field_name;
+		}
+
+		$(this).addClass('active_field');
+
 	});
 
 	$(".existing_tables input").live('keyup', function(e){
@@ -570,3 +713,4 @@
 			}
 		);
 	});
+
