@@ -45,4 +45,3 @@ if(!empty($tables)){
 <?php
 }
 ?>
-<script src="js/main.js"></script>

@@ -33,24 +33,72 @@
 
 	var makeDraggable = function(){
 		$(".drag_field, .drag_tbl").draggable(); 
+		
+
+		$(".table").droppable({
+			drop: function(event, ui){
+				
+				var field_id = ui.draggable[0].id;
+				var current_container = $(this);
+				var tbl_fields = current_container.children('.tbl_fields');
+				var field = $('#' + field_id).detach().css({top: 0, left: 0}).appendTo(tbl_fields);
+				
+				
+			}
+		});
 	};
+
+	var orderField = function(field_to_move, position, base_field){
+		$.post("invoker.php", 
+			{
+				"action" : "order_field", 
+				"table" : current_table,
+				"field" : field_to_move, 
+				"position" : position, 
+				"base_field" : base_field
+			},
+			function(response){
+				console.log(response);
+			}
+		);
+	};
+
+	var makeSortable = function(){
+		$(".tbl_fields").sortable({
+			update: function(event, ui){
+				var field_container = ui.item[0].id;
+				var base_field;
+				var position;
+
+				
+
+				if($("#" + field_container).prev().length){
+					position = "AFTER";
+					base_field = $("#" + field_container).prev().attr("id");
+				}else{
+					position = "FIRST";
+					base_field = $('#' + current_table + " .tbl_fields" + ":nth-last-child(2)").attr("id");
+				}
+
+				var field_to_move = expandString(shortRegex, $('#' + field_container + ' input').val());
+
+				orderField(field_to_move, position, base_field);
+
+
+
+			}
+		});
+		$(".tbl_fields").disableSelection();
+		
+	}
 
 	var linkedTables = [];
 	var linkedFields = [];
 
-	makeDraggable();
+	
+	makeSortable();
 
-	$(".table").droppable({
-		drop: function(event, ui){
-			
-			var field_id = ui.draggable[0].id;
-			var current_container = $(this);
-			var tbl_fields = current_container.children('.tbl_fields');
-			var field = $('#' + field_id).detach().css({top: 0, left: 0}).appendTo(tbl_fields);
-			
-			
-		}
-	});
+
 
 	$(".table").live('click', function(){
 		var tbl_id = $(this).find('.tbl_name').val();
@@ -169,8 +217,8 @@
 
 	var inverted_options = {
 		'auto_increment' : 'AI',
-		'YES' : 'NN',
-		'NO' : 'XX',
+		'YES' : 'XX',
+		'NO' : 'NN',
 		'CURRENT_TIMESTAMP' : 'CT',
 		"id=" : " "
 	};
@@ -237,15 +285,21 @@
 	};
 
 
-	var shortened_field = [];
-	$('.tbl_fields input[type!=""]').each(function(){
-		var field = $(this).val();
-		
-		shortened_field.push(shortenString(longRegex, field));
-		$(this).val(shortenString(longRegex, field));
-	});
 
-	$(".existing_tables").show();
+	var shortenFields = function(){
+		var shortened_field = [];
+		$('.tbl_fields input[type!=""]').each(function(){
+			var field = $(this).val();
+			
+			shortened_field.push(shortenString(longRegex, field));
+			$(this).val(shortenString(longRegex, field));
+		});
+
+		$(".existing_tables").show();
+	};
+
+	shortenFields();
+
 
 	var expandFields = function(){
 		var expanded_field = [];
@@ -414,6 +468,14 @@
 
 	key('j', function(){ //join tables
 		joinTables();
+	});
+
+	key('w', function(){
+		makeDraggable();
+	});
+
+	key('e', function(){
+		makeSortable();
 	});
 
 	var dropField = function(){

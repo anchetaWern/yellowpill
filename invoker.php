@@ -53,6 +53,18 @@ switch($action){
 		echo $yp->createLink($childTable, $mainTable, $childField, $mainField);
 	break;
 
+	case 'order_field':
+		$table = $_POST['table'];
+		$field_to_move = $_POST['field'];
+		
+		if(!empty($_POST['base_field'])){
+			$base_field = $_POST['base_field'];
+		}
+		
+		$position = $_POST['position'];
+		$yp->orderField($table, $field_to_move, $position, $base_field);
+	break;
+
 	case 'has_tbl':
 		$table = $_POST['table'];
 		echo $yp->hasTable($table);

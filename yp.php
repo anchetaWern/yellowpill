@@ -216,6 +216,12 @@ class yp{
 		return $fields;
 	}
 
+	public function orderField($table, $field_to_move, $position, $base_field = ''){
+		$query = "ALTER TABLE ". $table ." MODIFY COLUMN ". $field_to_move . " " . $position . " " . $base_field;
+		$query = $this->trimQuery($query);
+		return $this->getResult($query);
+	}
+
 	public function getTableLinks(){
 		$tablelinks = array();
 		$query = $this->db->query("

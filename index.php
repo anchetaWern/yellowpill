@@ -59,6 +59,16 @@ $databases = $db->query("
 <script>
 	$("#btn_connect").click(function(){
 		var db = $.trim($("#db").val());
-		$(".existing_tables").load("get_db.php", {"db" : db});
+		$(".existing_tables").load("get_db.php", {"db" : db}, function(){
+
+
+					if(typeof createField  == "undefined"){
+						var script = $("<script>").attr({"id" : "mainscript" , "src" : "js/main.js"});;
+						var container = $("#container");
+						script.insertAfter(container);
+					}
+					shortenFields();
+		});
+
 	});
 </script>
