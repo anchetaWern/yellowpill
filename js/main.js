@@ -120,10 +120,12 @@
 		if(e.ctrlKey === false){
 			
 			$(".table").removeClass('active_table');
+			$(".fields").removeClass('active_field');
+
 			linkedTables = [];
 			linkedTables.push(table_name);
 			selectedTables = {};
-
+			selectedFields = {};
 		}else{
 
 
@@ -510,7 +512,13 @@
 		var field_index = 1;
 
 		for(var field in selectedFields){
-			query += selectedFields[field];
+				
+			if(number_of_tables === 1){
+				query += field.split(".")[1];
+			}else{
+
+				query += field;
+			}
 
 			if(number_of_fields !== field_index){
 				query += ", ";
@@ -520,15 +528,87 @@
 
 		query += " FROM ";
 		for(var table in selectedTables){
+
 			query += selectedTables[table];
+				
 			if(number_of_tables !==  table_index){
 				query += ", ";
 			}
 			table_index++;
 		}
 
+		updateWhereModal();
 		updateQueryString(query);
 		return query;
+	};
+
+
+	var changeQuery = function(query_type){
+		var number_of_fields = getObjectLength(selectedFields);
+		var field_index = 1;
+		var query;
+
+		if(query_type === "UPDATE"){
+		  query = "UPDATE " + current_table + " SET ";
+		}else if(query_type === "INSERT"){
+		  query = "INSERT INTO " + current_table + " SET ";
+		}
+		
+		for(var field in selectedFields){
+			query +=  field.split(".")[1] + " = " + "'$" + field.split(".")[1] + "'";
+
+			if(number_of_fields !== field_index){
+				query += ", ";
+			}
+
+			field_index++;
+		}
+
+		updateWhereModal();
+		updateQueryString(query);
+		return query;
+	};
+
+	var deleteQuery = function(){
+		var query = "DELETE FROM " . current_table;
+
+		updateWhereModal();
+		updateQueryString(query);
+		return query;
+	};
+
+	var updateWhereModal = function(){
+		$(".selected_fields, .fields_values, .custom_values").empty();
+
+		var fields_container = $(".selected_fields");
+		var field_values = $(".field_values");
+		var custom_values = $(".custom_values");
+
+		var selectfield_header = $("<h6>").text("Selected Fields");
+		var fieldvalue_header = $("<h6>").text("Field Values");
+		var customvalue_header = $("<h6>").text("Custom Values");
+
+		var select_field1 = $("<select>").addClass("select_field1");
+		var select_field2 = $("<select>").addClass("select_field2");
+
+		selectfield_header.appendTo(fields_container);
+		fieldvalue_header.appendTo(field_values);
+		customvalue_header.appendTo(custom_values);
+
+		for(field in selectedFields){	
+			var field_option1 = $("<option>").attr("value", field).text(field);
+			var field_option2 = $("<option>").attr("value", field).text(field);
+		
+			select_field1.append(field_option1);
+			select_field2.append(field_option2);
+			
+		}
+
+		var custom_value = $("<input>").attr({"type" : "text", "class" : "custom_value"});
+		custom_values.append(custom_value);
+
+		fields_container.append(select_field1);
+		field_values.append(select_field2);
 	};
 
 	var selectAllFields = function(){
@@ -546,22 +626,6 @@
 	};
 
 
-
-	key('s+q', function(){
-		selectQuery();
-	});
-
-	key('u+q', function(){
-		updateQuery();
-	});
-
-	key('d+q', function(){
-		deleteQuery();
-	});	
-
-	key('i+q', function(){
-		insertQuery();
-	});	
 
 	key('a', function(){
 		selectAllFields();

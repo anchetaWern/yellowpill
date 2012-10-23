@@ -54,12 +54,30 @@ $databases = $db->query("
 			<div class="insert_query" data-qoption="insert">
 				Insert
 			</div>
-		</div>
-	</div>
+		</div><!--/.query_options-->
+	</div><!--/.container-->
 	
 	<div class="existing_tables"  style="display:none;">
-		
+	
+	</div><!--/.existing_tables-->
 
+	<div id="where_modal" class="reveal-modal large">
+	  <h4>Where</h4>
+	  <a class="close-reveal-modal">&#215;</a>
+
+	  <div class="selected_fields">
+	  	
+	  </div>
+	  
+	  <div class="field_values">
+	  	
+	  </div>
+
+	  <div class="custom_values">
+	  	
+	  </div>
+
+	  <input type="button" class="medium button" id="add_where" value="Add to Query">
 	</div>
 <!--
 	<div class="table drag_tbl">
@@ -80,9 +98,8 @@ $databases = $db->query("
 <script src="http://code.jquery.com/ui/1.9.0/jquery-ui.js"></script>
 <script src="keymaster.js"></script>
 <script src="libs/noty/js/jquery.noty.js"></script>
+<script src="libs/foundation/javascripts/jquery.foundation.reveal.js"></script>
 <script>
-	var query_option;
-
 	$("#btn_connect").click(function(){
 		var db = $.trim($("#db").val());
 		$(".existing_tables").load("get_db.php", {"db" : db}, function(){
@@ -104,13 +121,48 @@ $databases = $db->query("
 		$(this).removeClass('hover_option');
 	});
 
-	$(".query_options div").click(function(){
-		query_option = $(this).data('qoption');
-		$(".query_options div").removeClass('active_option');
-		if($(this).is('.active_option')){
-			$(this).removeClass('active_option');
+	var changeQueryType = function(query_type){
+		$('.query_options div').removeClass('active_option');
+		$('div[data-qoption='+query_type+']').addClass('active_option');
+	};
+
+	key('alt+s', function(){
+		changeQueryType("select");
+		selectQuery();
+	});
+
+	key('alt+u', function(){
+		if(getObjectLength(selectedTables) === 1){
+			changeQueryType("update");
+			changeQuery("UPDATE");
 		}else{
-			$(this).addClass('active_option');
+			noty_err.text = "You can only create an update query one table at a time";
+			noty(noty_err);
 		}
+
+	});
+
+	key('alt+d', function(){
+		if(getObjectLength(selectedTables) === 1){
+			changeQueryType("delete");
+			deleteQuery();
+		}else{
+			noty_err.text = "You can only create a delete query one table at a time";
+			noty(noty_err);
+		}
+	});	
+
+	key('alt+i', function(){
+		if(getObjectLength(selectedTables) === 1){
+			changeQueryType("insert");
+			changeQuery("INSERT");
+		}else{
+			noty_err.text = "You can only create a insert query one table at a time";
+			noty(noty_err);
+		}
+	});	
+
+	key('alt+w', function(){
+		$('#where_modal').reveal();
 	});
 </script>

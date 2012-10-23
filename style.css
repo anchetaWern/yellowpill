@@ -106,3 +106,19 @@
 .active_option{
 	background-color:orange;
 }
+
+#where_modal div {
+    width: 200px;
+    float: left;
+    margin-left: 20px;
+}
+
+#where_modal h6{
+	float: left;
+}
+
+#add_where{
+  margin-top: 20px;
+  float: right;
+  margin-right: 91px;
+}
