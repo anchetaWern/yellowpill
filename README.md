@@ -112,3 +112,5 @@ The following shortcuts for field definitions are used in the app.
 - Populating the database with values
 - When selecting from multiple tables put an alias for fields with the same name (tablename + fieldname)
 - Adding functions like COUNT and MD5 in queries
+- Deselecting tables when click the second time
+- Visual Representation on which is the primary key, foreign key, unique key in the table

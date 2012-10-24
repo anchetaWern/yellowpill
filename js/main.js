@@ -533,6 +533,8 @@
 		return modSelectedFields;
 	};
 
+
+
 	var selectQuery = function(){
 		var query = "SELECT ";
 		var current_table = getCurrentTable();
@@ -552,11 +554,18 @@
 
 			}
 		}else{
-			for(var field in modified_selectedfields){
-				
-					query += modified_selectedfields[field];
-				
+			for(var field in selectedFields){
+				var tbl = field.split(".")[0];
+				var fld = field.split(".")[1];
 
+				if(getSimilarFieldsCount(tbl, fld) === 0){
+					query += fld;
+					
+				}else{
+					
+					query += field + " AS " + tbl + "_" + fld;
+				}	
+				
 				if(number_of_fields !== field_index){
 					query += ", ";
 				}
@@ -650,6 +659,19 @@
 		field_values.append(select_field2);
 	};
 
+	var getSimilarFieldsCount = function(tablename, fieldname){
+		var similar_fields = [];
+		for(table in selectedTables){
+			$('#' + table + ' .fields').each(function(index, html){
+				var field = $(html).attr('id');
+				if(fieldname === field && tablename !== table){
+					similar_fields.push(field);
+				}
+			});
+		}
+		return similar_fields.length;
+	};	
+
 	var selectAllFields = function(){
 		$("#" + current_table + " .fields").addClass("active_field");
 		$("#" + current_table + " .fields").each(function(){
@@ -728,6 +750,7 @@
 	$(".fields").live('click', function(e){
 		$(this).removeClass('hover_field');
 		var field_name = $(this).attr('id');
+		var table_name = $(this).parents('div')[1].id;
 
 		var field = $(this).find("input").val();
 		var field_data = field.split(":");
@@ -759,9 +782,8 @@
 			}
 		}
 
-		console.log(current_table);
-		if(!selectedFields[current_table + "." + field_name]){
-			selectedFields[current_table + "." + field_name] = current_table + "." + field_name;
+		if(!selectedFields[table_name + "." + field_name]){
+			selectedFields[table_name + "." + field_name] = table_name + "." + field_name;
 		}
 
 		$(this).addClass('active_field');
@@ -782,7 +804,7 @@
     $(this).attr("id", "field_" +id);
 
    	if(isField){
-   		$(this).parents('.fields').attr("id", id);
+   		$(this).parents('.fields').attr("id", id.split(":")[0]);
 
     }else if(isTable){
     	current_table = id;
