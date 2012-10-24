@@ -109,3 +109,6 @@ The following shortcuts for field definitions are used in the app.
 - Visualization on which tables are connected and which fields connects the tables
 - Dropping database 
 - Transferring current fields from current table to another
+- Populating the database with values
+- When selecting from multiple tables put an alias for fields with the same name (tablename + fieldname)
+- Adding functions like COUNT and MD5 in queries

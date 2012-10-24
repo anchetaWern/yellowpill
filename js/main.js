@@ -502,40 +502,79 @@
 		return count;
 	};
 
+	var getCurrentTable = function(){
+		return current_table;
+	};
+
+	var getModifiedFields = function(){
+		var fields = [];
+		var modSelectedFields = {};
+		for(var field in selectedFields){
+			var fieldname = field.split(".")[1];
+			
+			
+
+			if(fields.indexOf(fieldname) !== -1){
+				for(var t in selectedTables){
+					var previous_field = t + "." + fieldname;
+					if(modSelectedFields[previous_field]){
+						modSelectedFields[previous_field] = previous_field + " AS " + previous_field.replace(".", "_");
+						break;
+					}
+				}
+
+				modSelectedFields[field] = field + " AS " + field.replace(".", "_");
+			}else{
+				modSelectedFields[field] = fieldname;
+			}
+
+			fields.push(fieldname);
+		}
+		return modSelectedFields;
+	};
+
 	var selectQuery = function(){
 		var query = "SELECT ";
-
+		var current_table = getCurrentTable();
 		var number_of_tables = getObjectLength(selectedTables);
 		var number_of_fields = getObjectLength(selectedFields);
+		var modified_selectedfields = getModifiedFields();
 
 		var table_index = 1;
 		var field_index = 1;
 
-		for(var field in selectedFields){
+		if(number_of_tables === 1){
+			var tablefield_count = $('#' + current_table + '.fields').children().length;
+			var tableselectedfield_count = $('#' + current_table + '.active_field').length;
+
+			if(tablefield_count === tableselectedfield_count){
+				query += "* FROM " + current_table;
+
+			}
+		}else{
+			for(var field in modified_selectedfields){
 				
-			if(number_of_tables === 1){
-				query += field.split(".")[1];
-			}else{
+					query += modified_selectedfields[field];
+				
 
-				query += field;
+				if(number_of_fields !== field_index){
+					query += ", ";
+				}
+				field_index++;
 			}
 
-			if(number_of_fields !== field_index){
-				query += ", ";
+			query += " FROM ";
+			for(var table in selectedTables){
+
+				query += selectedTables[table];
+					
+				if(number_of_tables !==  table_index){
+					query += ", ";
+				}
+				table_index++;
 			}
-			field_index++;
 		}
 
-		query += " FROM ";
-		for(var table in selectedTables){
-
-			query += selectedTables[table];
-				
-			if(number_of_tables !==  table_index){
-				query += ", ";
-			}
-			table_index++;
-		}
 
 		updateWhereModal();
 		updateQueryString(query);
@@ -578,7 +617,7 @@
 	};
 
 	var updateWhereModal = function(){
-		$(".selected_fields, .fields_values, .custom_values").empty();
+		$(".selected_fields, .field_values, .custom_values").empty();
 
 		var fields_container = $(".selected_fields");
 		var field_values = $(".field_values");
@@ -780,3 +819,90 @@
 		);
 	});
 
+	$("#add_where").live('click', function(){
+		var query = $.trim($("#query_string").val());
+		var where = $.trim($('.select_field1').val());
+		var value;
+	
+		var where_regex = /where/ig
+
+		if(!where_regex.test(query)){
+			query += " WHERE ";
+		}else{
+			query += " AND ";
+		}
+
+		var table_count = getObjectLength(selectedTables);
+		if(table_count === 1){
+			where = where.split(".")[1];
+
+			if($.trim($('.custom_value').val()) === ""){
+				value = $.trim($('.select_field2').val()).split(".")[1];
+			}else{
+				value = "'"+ $.trim($('.custom_value').val()) +"'";
+			}
+		}else{
+			if($.trim($('.custom_value').val()) === ""){
+				value = $.trim($('.select_field2').val());
+			}else{
+				value = "'"+ $.trim($('.custom_value').val()) +"'";	
+			}
+		}
+
+		query += where + " = " + value;
+		$("#query_string").val(query);
+		$(".custom_value").val("");
+	});
+
+
+
+	$(".query_options div").hover(function(){
+		$(this).addClass('hover_option');
+	}, function(){
+		$(this).removeClass('hover_option');
+	});
+
+	var changeQueryType = function(query_type){
+		$('.query_options div').removeClass('active_option');
+		$('div[data-qoption='+query_type+']').addClass('active_option');
+	};
+
+	key('alt+s', function(){
+		changeQueryType("select");
+		selectQuery();
+	});
+
+	key('alt+u', function(){
+		if(getObjectLength(selectedTables) === 1){
+			changeQueryType("update");
+			changeQuery("UPDATE");
+		}else{
+			noty_err.text = "You can only create an update query one table at a time";
+			noty(noty_err);
+		}
+
+	});
+
+	key('alt+d', function(){
+		if(getObjectLength(selectedTables) === 1){
+			changeQueryType("delete");
+			deleteQuery();
+		}else{
+			noty_err.text = "You can only create a delete query one table at a time";
+			noty(noty_err);
+		}
+	});	
+
+	key('alt+i', function(){
+		if(getObjectLength(selectedTables) === 1){
+			changeQueryType("insert");
+			changeQuery("INSERT");
+		}else{
+			noty_err.text = "You can only create a insert query one table at a time";
+			noty(noty_err);
+		}
+	});	
+
+	key('alt+w', function(){
+		$('#where_modal').reveal();
+	});
