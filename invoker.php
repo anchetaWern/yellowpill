@@ -57,6 +57,7 @@ switch($action){
 		$table = $_POST['table'];
 		$field_to_move = $_POST['field'];
 		
+		$base_field = "";
 		if(!empty($_POST['base_field'])){
 			$base_field = $_POST['base_field'];
 		}

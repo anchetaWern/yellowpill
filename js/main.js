@@ -51,6 +51,7 @@
 	};
 
 	var orderField = function(field_to_move, position, base_field){
+		var current_table = getCurrentTable();
 		$.post("invoker.php", 
 			{
 				"action" : "order_field", 
@@ -79,14 +80,12 @@
 					base_field = $("#" + field_container).prev().attr("id");
 				}else{
 					position = "FIRST";
-					base_field = $('#' + current_table + " .tbl_fields" + ":nth-last-child(2)").attr("id");
+					
 				}
 
 				var field_to_move = expandString(shortRegex, $('#' + field_container + ' input').val());
 
 				orderField(field_to_move, position, base_field);
-
-
 
 			}
 		});
@@ -110,9 +109,20 @@
 		$(this).removeClass('hover_table');
 	});
 
+	var getSelectedTables = function(){
+		var selectedTables = {};
+	  $('.active_table').each(function(index, html){
+	  	var table = $(html).attr('id');
+	    selectedTables[table] = table;
+	  });
+	  return selectedTables;
+	};
+
 	$(".table").live('click', function(e){
+		e.stopPropagation()
 		var tbl_id = $(this).find('.tbl_name').val();
 		current_table = tbl_id;
+
 
 		$(this).removeClass('hover_table');
 		var table_name = $(this).attr('id');
@@ -133,7 +143,7 @@
 				$(this).removeClass('active_table');
 
 			}else{
-				
+				$(this).addClass('active_table');
 				if($('.active_table').length < 2){
 					
 					if(!linkedTables[table_name]){
@@ -141,16 +151,9 @@
 						
 					}
 				}
-
-				
 			}
 		}
-
-		if(!selectedTables[table_name]){
-			selectedTables[table_name] = table_name;
-		}
-
-		$(this).addClass('active_table');
+		selectedTables = getSelectedTables();
 	});
 
 	var createField = function(){
@@ -394,8 +397,6 @@
 		}
 	};
 
-
-
 	var updateTable = function(action){
 
 		$.post(
@@ -503,56 +504,42 @@
 	};
 
 	var getCurrentTable = function(){
-		return current_table;
+		return $('.active_table').attr('id');
 	};
-
-	var getModifiedFields = function(){
-		var fields = [];
-		var modSelectedFields = {};
-		for(var field in selectedFields){
-			var fieldname = field.split(".")[1];
-			
-			
-
-			if(fields.indexOf(fieldname) !== -1){
-				for(var t in selectedTables){
-					var previous_field = t + "." + fieldname;
-					if(modSelectedFields[previous_field]){
-						modSelectedFields[previous_field] = previous_field + " AS " + previous_field.replace(".", "_");
-						break;
-					}
-				}
-
-				modSelectedFields[field] = field + " AS " + field.replace(".", "_");
-			}else{
-				modSelectedFields[field] = fieldname;
-			}
-
-			fields.push(fieldname);
-		}
-		return modSelectedFields;
-	};
-
-
 
 	var selectQuery = function(){
 		var query = "SELECT ";
 		var current_table = getCurrentTable();
 		var number_of_tables = getObjectLength(selectedTables);
 		var number_of_fields = getObjectLength(selectedFields);
-		var modified_selectedfields = getModifiedFields();
 
 		var table_index = 1;
 		var field_index = 1;
 
 		if(number_of_tables === 1){
-			var tablefield_count = $('#' + current_table + '.fields').children().length;
-			var tableselectedfield_count = $('#' + current_table + '.active_field').length;
+			var tablefield_count = $('#' + current_table + ' .fields').children().length;
+			var tableselectedfield_count = $('#' + current_table + ' .active_field').length;
 
 			if(tablefield_count === tableselectedfield_count){
 				query += "* FROM " + current_table;
 
+			}else{
+				for(var field in selectedFields){
+					var tbl = field.split(".")[0];
+					var fld = field.split(".")[1];
+
+					query += fld;
+
+					if(number_of_fields !== field_index){
+						query += ", ";
+					}
+					field_index++;
+				}
+				
 			}
+
+			query += " FROM " + current_table;
+
 		}else{
 			for(var field in selectedFields){
 				var tbl = field.split(".")[0];
@@ -595,6 +582,7 @@
 		var number_of_fields = getObjectLength(selectedFields);
 		var field_index = 1;
 		var query;
+		var current_table = getCurrentTable();
 
 		if(query_type === "UPDATE"){
 		  query = "UPDATE " + current_table + " SET ";
@@ -618,6 +606,7 @@
 	};
 
 	var deleteQuery = function(){
+		var current_table = getCurrentTable();
 		var query = "DELETE FROM " . current_table;
 
 		updateWhereModal();
@@ -680,9 +669,7 @@
 				linkedFields.push(field);
 			}
 
-			if(!selectedFields[current_table + "." + field]){
-				selectedFields[current_table + "." + field] = current_table + "." + field;
-			}
+			selectedFields = getSelectedFields();
 		});
 	};
 
@@ -745,9 +732,25 @@
 
 	});
 
+	var getSelectedFields = function(){
+		var selectedFields = {};
+    $('.active_field').each(function(index, html){
 
+			var table = $($(html).parents('div')[1]).attr('id');
+			var field = $(html).attr('id');
+
+	    if(!selectedFields[table + "." + field]){
+				selectedFields[table + "." + field] = table + "." + field;
+			}
+
+    });
+
+    return selectedFields;
+	};
 
 	$(".fields").live('click', function(e){
+		e.stopPropagation();
+		
 		$(this).removeClass('hover_field');
 		var field_name = $(this).attr('id');
 		var table_name = $(this).parents('div')[1].id;
@@ -766,10 +769,14 @@
 
 
 			if($(this).is('.active_field')){
-				$(this).removeClass('active_field');
 
+				$(this).removeClass('active_field');
+	
 			}else{
-				
+				current_table = table_name;
+				$('#' + current_table).addClass('active_table');
+
+				$(this).addClass('active_field');
 				if($('.active_field').length < 2){
 					
 					if(!linkedFields[field_name]){
@@ -777,17 +784,10 @@
 						
 					}
 				}
-
-				
 			}
 		}
 
-		if(!selectedFields[table_name + "." + field_name]){
-			selectedFields[table_name + "." + field_name] = table_name + "." + field_name;
-		}
-
-		$(this).addClass('active_field');
-
+		selectedFields = getSelectedFields();
 	});
 
 	$(".existing_tables input").live('keyup', function(e){

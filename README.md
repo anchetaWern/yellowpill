@@ -11,6 +11,8 @@ This application will be used for quick database schema generation and visualiza
 - Joining tables
 - Deleting tables
 - Dropping fields
+- Generating Select Queries from multiple tables
+- Generating Update, Delete and Insert queries on a single table
 
 
 ##Current Issues
@@ -19,6 +21,9 @@ This application will be used for quick database schema generation and visualiza
 - Script for creating new tables and fields executes a dozen of times
 - Cannot create new tables for newly created databases
 - UI Issues
+- Ordering of fields doesnt work
+- Ordering of fields doesnt work if the ordering will affect the ordering of other fields.
+This might require multiple queries but maybe its just an issue with the JavaScript code.
 
 
 ##Configuration
@@ -42,14 +47,40 @@ define('PASSWORD', ''); //password
 1 //executes the query
 ```
 
+##How to Use
+
+This project is still very early in development so its expected that there are still a lot of bugs but its already useable.
+To use this application you have to edit the configuration file and supply your database information (instructions are above).
+
+If the database information that you supplied is correct then access ```http://127.0.0.1:8020/yellowpill/``` on your browser.
+You might have a different port number where apache is running so you may have to change ```8020``` with that specific port number.
+
+Next, select the database that you want to work with by typing its first few letters so that it will show up in the auto-suggest field for the database.
+
+You have to hold the ctrl key on your keyboard when selecting tables or fields. 
+You can select tables or fields by clicking on any area with the move cursor(arrow with 4 heads). 
+Clicking on a selected table or field will deselect what you have selected.
+
+
 ##Keyboard Shortcuts
 
 ```php
-f //create new field(a table must already be selected before creating a new field, you can also press enter from inside an existing field to create a new field for the selected table)
-t //generate table
-s //save new table(to save a table there must be atleast one field in it)
-d //drop table(existing table can be selected by clicking the table or anywhere inside the table)
-j //join tables(tables to be joined can be selected using the checkbox just below the tables name)
+f -create new field(a table must already be selected before creating a new field, you can also press enter from inside an existing field to create a new field for the selected table)
+t -generate a new table
+s -save new table(to save a table there must be atleast one field in it)
+d -drop table(existing table can be selected by clicking the table or anywhere inside the table)
+j -join tables(tables to be joined can be selected using the checkbox just below the tables name)
+a -selects all fields from currently selected table
+del -drop selected fields
+
+
+//generating queries
+alt+s -generates a select query from tables and fields that were selected
+alt+u -generates an update query
+alt+i -generates an insert query
+alt+d -generates a delete query
+
+alt+w -shows the where modal. It is used for supplying where statements on the current query.
 ```
 
 ##Shorthand Values

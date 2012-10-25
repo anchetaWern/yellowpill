@@ -13,6 +13,7 @@ $databases = $db->query("
 <link rel="stylesheet" href="libs/noty/css/noty_theme_default.css"/>
 
 <div id="container">
+	<h1>YellowPill</h1>
 	<div id="form_container">
 		<div class="databases">
 			<label for="db">Database</label>
@@ -67,32 +68,20 @@ $databases = $db->query("
 
 	  <div class="selected_fields">
 	  	
-	  </div>
+	  </div><!--/.selected_fields-->
 	  
 	  <div class="field_values">
 	  	
-	  </div>
+	  </div><!--/.field_values-->
 
 	  <div class="custom_values">
 	  	
-	  </div>
+	  </div><!--/.custom_values-->
 
 	  <input type="button" class="medium button" id="add_where" value="Add to Query">
-	</div>
-<!--
-	<div class="table drag_tbl">
-		<div class="tbl_header">
-			<input type="text" class="tbl_name" placeholder="table name">
-			<input type="checkbox" class="connector"/>
-		</div>
-		<div class="tbl_fields">
-			<div class="fields drag_field">
-					<input type="text" class="field_name" placeholder="field name">
-			</div>
-		</div>
-	</div>
--->
-</div>
+	</div><!--/#where_modal-->
+
+</div><!--/.container-->
 
 <script src="http://code.jquery.com/jquery-1.8.2.js"></script>
 <script src="http://code.jquery.com/ui/1.9.0/jquery-ui.js"></script>
