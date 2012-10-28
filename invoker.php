@@ -2,7 +2,7 @@
 session_start();
 require_once('config.php');
 require_once('yp.php');
-$yp = new yp(HOST, USER, PASSWORD, $_SESSION['db'], 1);
+$yp = new yp(HOST, USER, PASSWORD, $_SESSION['db'], 0);
 
 $action = $_POST['action'];
 
@@ -63,7 +63,7 @@ switch($action){
 		}
 		
 		$position = $_POST['position'];
-		$yp->orderField($table, $field_to_move, $position, $base_field);
+		echo $yp->orderField($table, $field_to_move, $position, $base_field);
 	break;
 
 	case 'has_tbl':

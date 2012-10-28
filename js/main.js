@@ -3,6 +3,16 @@
 	var old_field;
 	var old_table;
 
+	var current = {
+		'table' : '',
+		'field' : ''
+	};
+
+	var old = {
+		'field' : '',
+		'table' : ''
+	};
+
 	var noty_success = {
 		"text":"Operation was successfully completed!",
 		"layout":"top",
@@ -51,11 +61,11 @@
 	};
 
 	var orderField = function(field_to_move, position, base_field){
-		var current_table = getCurrentTable();
+		
 		$.post("invoker.php", 
 			{
 				"action" : "order_field", 
-				"table" : current_table,
+				"table" : current.table,
 				"field" : field_to_move, 
 				"position" : position, 
 				"base_field" : base_field
@@ -121,7 +131,7 @@
 	$(".table").live('click', function(e){
 		e.stopPropagation()
 		var tbl_id = $(this).find('.tbl_name').val();
-		current_table = tbl_id;
+		current.table = tbl_id;
 
 
 		$(this).removeClass('hover_table');
@@ -160,7 +170,7 @@
 		var field_container = $("<div>").addClass("fields drag_field");
 		var field = $("<input>").attr({"type" : "text", "placeholder" : "field name"}).addClass("field_name");
 		field_container.append(field);
-		var table = $('#' + current_table + " .tbl_fields");
+		var table = $('#' + current.table + " .tbl_fields");
 		table.append(field_container);
 		field.focus();
 		field.click();
@@ -345,7 +355,7 @@
 
 	var expandFields = function(){
 		var expanded_field = [];
-		$('#' + current_table + " .tbl_fields .fields").each(function(){
+		$('#' + current.table + " .tbl_fields .fields").each(function(){
 			var field = $(this).attr("id");
 			
 			 expanded_field.push(expandString(shortRegex, field));
@@ -360,7 +370,7 @@
 
 		$.post(
 			"invoker.php", 
-			{"action" : "create_tbl", "table" : current_table, "fields" : expanded_field},
+			{"action" : "create_tbl", "table" : current.table, "fields" : expanded_field},
 			function(response){
 				console.log(response);
 				console.log("Created Table");
@@ -373,10 +383,10 @@
 	var dropTable = function(){
 		$.post(
 			"invoker.php", 
-			{"action" : "drop_tbl", "table" : current_table},
+			{"action" : "drop_tbl", "table" : current.table},
 			function(response){
 				console.log(response);
-				$('#' + current_table).remove();
+				$('#' + current.table).remove();
 				noty_success.text = "Successfully dropped table!";
 				noty(noty_success);
 			}
@@ -386,23 +396,23 @@
 	var modifyTable = function(){
 
 		if(isExisting('has_tbl') === 1){
-			current_field = expandString(shortRegex, current_field);
+			var field = expandString(shortRegex, current.field);
 			
 			if(isExisting('has_field')){
-				updateTable('modify_field');
+				updateTable('modify_field', current.table, old.field, field);
 			}else{
-				updateTable('add_field');
+				updateTable('add_field', current.table, old.field, field);
 			}
 
 		}
 	};
 
-	var updateTable = function(action){
+	var updateTable = function(action, table, old_field, current_field){
 
 		$.post(
 			"invoker.php", 
 			{
-			"action" : action, "table" : current_table, 
+			"action" : action, "table" : table, 
 			"old_field" : old_field, "new_field" : current_field
 			},
 			function(response){
@@ -413,21 +423,22 @@
 		);
 	};
 
-	var createJoinFlag = function(table_name){
+	var createJoinFlag = function(table, linked_tables){
 		var flagtext;
-		if(linkedTables.length == 1){
+		if(linked_tables.length == 1){
 			flagtext = "main";
 		}else{
 			flagtext = "child";
 		}
 		var flag = $("<div>").addClass("flag").text(flagtext);
-		flag.insertAfter($('#' + table_name + ' .tbl_fields'));
+		flag.insertAfter($('#' + table + ' .tbl_fields'));
 		
 	};
 
 	var joinTables = function(){
-		var child_table = linkedTables[1];
-		var main_table = linkedTables[0];
+		var linked_tables = getLinkedTables();
+		var child_table = linked_tables[1];
+		var main_table = linked_tables[0];
 		var child_field = linkedFields[1];
 		var main_field = linkedFields[0];
 		$.post(
@@ -452,15 +463,15 @@
 
 	var isExisting = function(action){
 		
-		old_field = $.trim(old_field);
-		current_table = $.trim(current_table);
+		old.field = $.trim(old.field);
+		current.table = $.trim(current.table);
 		console.log(old_field);
 
 		var field_count = 0;
 		$.ajax({
 			type: "POST",
 			url : "invoker.php",
-			data : {"action" : action, "table" : current_table, "field" : old_field},
+			data : {"action" : action, "table" : current.table, "field" : old.field},
 			async : false
 		}).done(function(response){
 			field_count = response;
@@ -469,22 +480,25 @@
 		return Number(field_count);
 	};
 
-
+	var getLinkedTables = function(){//gets the tables that are selected for linking by the current user
+		var linkedTables = [];
+		$('.connector:checked').parents('div.table').each(function(index, html){
+			var table = $(html).attr('id');
+			linkedTables.push(table);
+		});
+		return linkedTables;
+	};
 
 	$(".connector").live('click', function(){
 		var table_name = $($(this).parents('div')[1]).attr("id");
+		var connectedtable_count = $('.connector:checked').length;
+		var linkedTables = getLinkedTables();
 
-		if($(this).is(":checked")){
-			if(linkedTables.length != 2){
-				if(!linkedTables[table_name]){
-					linkedTables.push(table_name);
-					createJoinFlag(table_name);
-				}
-				
-			}else{
-				noty_err.text = "Only two tables can be linked at a time!";
-				noty(noty_err);
-			}
+		if(connectedtable_count <= 2){
+			createJoinFlag(table_name, linkedTables);
+		}else{
+			noty_err.text = "Only two tables can be linked at a time!";
+			noty(noty_err);
 		}
 		
 	});
@@ -504,12 +518,11 @@
 	};
 
 	var getCurrentTable = function(){
-		return $('.active_table').attr('id');
+		return current.table;
 	};
 
 	var selectQuery = function(){
 		var query = "SELECT ";
-		var current_table = getCurrentTable();
 		var number_of_tables = getObjectLength(selectedTables);
 		var number_of_fields = getObjectLength(selectedFields);
 
@@ -517,11 +530,11 @@
 		var field_index = 1;
 
 		if(number_of_tables === 1){
-			var tablefield_count = $('#' + current_table + ' .fields').children().length;
-			var tableselectedfield_count = $('#' + current_table + ' .active_field').length;
+			var tablefield_count = $('#' + current.table + ' .fields').children().length;
+			var tableselectedfield_count = $('#' + current.table + ' .active_field').length;
 
 			if(tablefield_count === tableselectedfield_count){
-				query += "* FROM " + current_table;
+				query += "* FROM " + current.table;
 
 			}else{
 				for(var field in selectedFields){
@@ -538,7 +551,7 @@
 				
 			}
 
-			query += " FROM " + current_table;
+			query += " FROM " + current.table;
 
 		}else{
 			for(var field in selectedFields){
@@ -582,12 +595,11 @@
 		var number_of_fields = getObjectLength(selectedFields);
 		var field_index = 1;
 		var query;
-		var current_table = getCurrentTable();
 
 		if(query_type === "UPDATE"){
-		  query = "UPDATE " + current_table + " SET ";
+		  query = "UPDATE " + current.table + " SET ";
 		}else if(query_type === "INSERT"){
-		  query = "INSERT INTO " + current_table + " SET ";
+		  query = "INSERT INTO " + current.table + " SET ";
 		}
 		
 		for(var field in selectedFields){
@@ -606,8 +618,7 @@
 	};
 
 	var deleteQuery = function(){
-		var current_table = getCurrentTable();
-		var query = "DELETE FROM " . current_table;
+		var query = "DELETE FROM " . current.table;
 
 		updateWhereModal();
 		updateQueryString(query);
@@ -662,15 +673,8 @@
 	};	
 
 	var selectAllFields = function(){
-		$("#" + current_table + " .fields").addClass("active_field");
-		$("#" + current_table + " .fields").each(function(){
-			var field = $(this).attr("id");
-			if(linkedFields.length < 2){
-				linkedFields.push(field);
-			}
-
-			selectedFields = getSelectedFields();
-		});
+		$("#" + current.table + " .fields").addClass("active_field");
+		selectedFields = getSelectedFields();
 	};
 
 
@@ -707,18 +711,18 @@
 		makeSortable();
 	});
 
-	var dropField = function(){
+	var dropField = function(table, fields){
 		$.post("invoker.php", 
-			{"action" : "drop_field", "table" : current_table, "fields" : old_field},
+			{"action" : "drop_field", "table" : table, "fields" : fields},
 			function(response){
 				console.log(response);
-				$('#' + old_field).remove();
+				$('#' + fields).remove();
 			}
 		);
 	};
 
 	key('del', function(){ 
-		dropField();
+		dropField(current.table, old_field);
 	});
 
 	$(".fields").hover(function(){
@@ -748,33 +752,43 @@
     return selectedFields;
 	};
 
+	var isLinkedTable = function(field){
+		return $($('#' + field).parents('div')[0]).siblings().children('input[type=checkbox]').is(':checked');
+	};
+
 	$(".fields").live('click', function(e){
 		e.stopPropagation();
 		
 		$(this).removeClass('hover_field');
 		var field_name = $(this).attr('id');
 		var table_name = $(this).parents('div')[1].id;
+		current.field = field_name;
 
 		var field = $(this).find("input").val();
 		var field_data = field.split(":");
 		old_field = field_data[0];
 
 		if(e.ctrlKey === false){
-			
+			$(this).addClass('active_field');
 			$(".fields").removeClass('active_field');
-			linkedFields = [];
-			linkedFields.push(field_name);
+
+			if(isLinkedTable(field_name)){
+				linkedFields = [];
+				linkedFields.push(field_name);
+			} 
+
+
+
 			selectedFields = {};
 		}else{
-
 
 			if($(this).is('.active_field')){
 
 				$(this).removeClass('active_field');
 	
 			}else{
-				current_table = table_name;
-				$('#' + current_table).addClass('active_table');
+				current.table = table_name;
+				$('#' + table_name).addClass('active_table');
 
 				$(this).addClass('active_field');
 				if($('.active_field').length < 2){
@@ -789,6 +803,16 @@
 
 		selectedFields = getSelectedFields();
 	});
+
+		var hasLinkedField = function(){
+			return $('#' + field_name).siblings('.active_field').length;
+		};
+
+		var addLinkedField = function(field_name){
+			if(hasLinkedField(field_name) === 0){
+				linkedFields.push(field_name);
+			}
+		};
 
 	$(".existing_tables input").live('keyup', function(e){
 		var isTable = $(this).is('.tbl_name');
@@ -807,7 +831,7 @@
    		$(this).parents('.fields').attr("id", id.split(":")[0]);
 
     }else if(isTable){
-    	current_table = id;
+    	current.table = id;
     	$($(this).parents('div')[1]).attr("id", id);
     	
     }
@@ -816,25 +840,25 @@
 	$(".field_name").live('click', function(){
 		var field = $(this).val();
 		var field_data = field.split(":");
-		old_field = field_data[0];
+		old.field = field_data[0];
 	});
 
 	$(".field_name").live('blur', function(){
 		if($(this).val() !== ""){
 
-			current_field = $(this).val();
+			current.field = $(this).val();
 			modifyTable();
 		}
 	});
 
 	$(".tbl_name").live('click', function(){
-		old_table = $.trim($(this).val());
+		old.table = $.trim($(this).val());
 	});
 
 	$(".tbl_name").live('blur', function(){
 		var new_table = $.trim($(this).val());
 		$.post("invoker.php", 
-			{"action" : "rename_tbl", "current_table" : old_table, "new_table" : new_table}, 
+			{"action" : "rename_tbl", "current.table" : old.table, "new_table" : new_table}, 
 			function(response){
 				console.log(response);
 			}
@@ -927,4 +951,21 @@
 
 	key('alt+w', function(){
 		$('#where_modal').reveal();
+	});
+
+	var detached_field; //change later dude
+	key('ctrl+x', function(){
+		detached_field = $('#' + current.field).detach();
+
+	});
+
+	key('ctrl+v', function(){
+		var table = $('#' + current.table);
+		detached_field.appendTo(table);
+		var detached_field_value = detached_field.find('input').val();
+		old_field = detached_field.attr("id");
+
+		current.field = expandString(shortRegex, detached_field_value);
+		//updateTable('add_field');
+		dropField();
 	});
