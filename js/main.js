@@ -61,10 +61,11 @@
 		$(".tbl_fields").sortable({
 			update: function(event, ui){
 				var field_container = ui.item[0].id;
+				var table = $(ui.item).parents("div")[1].id;
 				var base_field;
 				var position;
 
-				if($("#" + field_container).prev().length){
+				if($("#" + table + " #" + field_container).prev().length){
 					position = "AFTER";
 					base_field = $("#" + field_container).prev().attr("id");
 				}else{
@@ -311,8 +312,8 @@
 
 	var expandFields = function(){
 		var expanded_field = [];
-		$('#' + current.table + " .tbl_fields .fields").each(function(){
-			var field = $(this).attr("id");
+		$('#' + current.table + " .tbl_fields .fields .field_name").each(function(){
+			var field = $.trim($(this).val());
 			
 			 expanded_field.push(expandString(shortRegex, field));
 			 
@@ -864,14 +865,19 @@
 		generateTable();
 	});
 
+	$(".field_name").live("keyup", function(){
+		var fieldID = $.trim($(this).val()).split(":")[0];
+		$(this).attr("id", fieldID);
+		$($(this).parents("div")[0]).attr("id", fieldID);
+	});
 
-	$(".field_name").live('click', function(){
+	$(".field_name").live("click", function(){
 		var field = $(this).val();
 		var field_data = field.split(":");
 		old.field = field_data[0];
 	});
 
-	$(".field_name").live('blur', function(){
+	$(".field_name").live("blur", function(){
 		if($(this).val() !== ""){
 			
 			var currentFieldID = $(this).parents("div")[0].id;
@@ -900,8 +906,29 @@
     }
 	});
 
+	var renameTable = function(currentTableName, newTableName){
+		$.post(
+			"invoker.php", 
+			{
+				"action" : "rename_tbl", 
+				"current_table" : currentTableName, 
+				"new_table" : newTableName
+			},
+			function(response){
+				console.log(response);
+			}
+		);
+	};
+
+	$(".tbl_name").live("click", function(){
+		var tblName = $.trim($(this).val());
+		old.table = tblName;
+	});
+
 	$(".tbl_name").live("blur", function(){
 		current.table = $.trim($(this).val());
+		$($(this).parents("div")[1]).attr("id", current.table);
+		renameTable(old.table, current.table);
 	});
 
 	key("s", function(){
