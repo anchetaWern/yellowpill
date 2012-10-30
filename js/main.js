@@ -136,22 +136,20 @@
 	};
 
 	var generateTable = function(){
-		var table = $("<div>").addClass("table drag_tbl");
+		var table = $("<div>").addClass("table drag_tbl active_table");
 		var tbl_header = $("<div>").addClass("tbl_header");
 		var tbl_name = $("<input>").attr({"type" : "text", "placeholder" : "table name"}).addClass("tbl_name");
-		var tbl_connector = $("<input>").attr({"type" : "checkbox", "class" : "connector"});
 		var tbl_field = $("<div>").addClass("tbl_fields");
 		var field_container = $("<div>").addClass("fields drag_field");
 		var field = $("<input>").attr({"type" : "text", "placeholder" : "field name"}).addClass("field_name");
 
 		tbl_header.append(tbl_name);
-		tbl_header.append(tbl_connector);
 		table.append(tbl_header);
 		field_container.append(field);
 		tbl_field.append(field_container);
 		table.append(tbl_field);
 		$('.existing_tables').append(table);
-
+		tbl_name.focus();
 		makeDraggable();
 	};
 
@@ -323,12 +321,12 @@
 		return expanded_field;
 	};
 
-	var createTable = function(){
+	var createTable = function(currentTable){
 		var expanded_field = expandFields();
 
 		$.post(
 			"invoker.php", 
-			{"action" : "create_tbl", "table" : current.table, "fields" : expanded_field},
+			{"action" : "create_tbl", "table" : currentTable, "fields" : expanded_field},
 			function(response){
 				console.log(response);
 				console.log("Created Table");
@@ -662,10 +660,10 @@
 		$(this).removeClass("hover_table");
 
 		if($(this).is(".active_table")){
-
+				
 			$(this).removeClass("active_table");
+			var selectedFields = getSelectedFields();
 			deselectFields(table, 1);
-			reselectFields(table);
 
 			selectedTables = {};
 			selectedFields = {};
@@ -681,8 +679,7 @@
 				$(".table").removeClass("active_table");
 				$(this).addClass("active_table");
 				deselectFields(table, 2);
-				reselectFields(table);
-
+				
 				selectedTables = {};
 				selectedFields = {};
 			}
@@ -692,7 +689,7 @@
 		selectedFields = getSelectedFields();
 	});
 
-	var getFields = function(table, type){ //gets the active fields of a specific table
+	var getTableFields = function(table, type){ //gets the active fields of a specific table
 		var fields = [];
 		if(type === 1){ //supply the array with active fields only
 			$('#' + table + ' .active_field').each(function(){
@@ -716,11 +713,19 @@
 		}
 	};
 
-	var reselectFields = function(table){
-		var activeFields = getFields(table, 1);
-		$.each(activeFields, function(index, id){ 
-			$("#" + id).addClass("active_field"); //reselect the fields of the current table
-		});
+	var reselectFields = function(table, activeFields, type){
+		if(type === 1){
+			$.each(activeFields, function(index, val){
+			  var fullField = val.split(".");
+			  var table = fullField[0];
+			  var field = fullField[1];
+			  $("#" + table + " #" + field).addClass("active_field");
+			});
+		}else{
+			$.each(activeFields, function(index, field){ 
+				$("#" + table + " #" + field).addClass("active_field"); //reselect the fields of the current table
+			});
+		}
 	};
 
 	//event handler for clicking on fields
@@ -731,11 +736,14 @@
 		e.stopPropagation();
 		var table = $($(this).parents("div")[1]).attr("id");
 		var field = $(this).attr("id");
+		$("#" + table).removeClass("hover_table");
 
 		if($(this).is(".active_field")){
 			$(this).removeClass("active_field");
+
+			var activeFields = getTableFields(table, 1);
 			deselectFields(table, 1);
-			reselectFields(table);
+			reselectFields(table, activeFields);
 
 			selectedTables = {};
 			selectedFields = {};
@@ -750,8 +758,10 @@
 			}else{
 				$(".table").removeClass("active_table");
 				$("#" + table).addClass("active_table");
-				deselectFields(table, 2);
-				reselectFields(table);
+
+				var activeFields = getTableFields(table, 1);
+				deselectFields(table, 1);
+				reselectFields(table, activeFields);
 
 				selectedTables = {};
 				selectedFields = {};
@@ -785,7 +795,7 @@
 
 			$(".active_table").each(function(index, val){
 				var table = $(this).attr("id");
-				var fields = getFields(table);
+				var fields = getTableFields(table);
 				var fieldCount = fields.length;
 
 				var header = $("<label>").text(table);
@@ -863,9 +873,40 @@
 
 	$(".field_name").live('blur', function(){
 		if($(this).val() !== ""){
+			
+			var currentFieldID = $(this).parents("div")[0].id;
+			var newFieldID = $(this).val().split(":")[0];
 
 			current.field = $(this).val();
 			modifyTable(current.table, old.field, current.field);
+			updateFieldID(currentFieldID, newFieldID); //IM HERE
 		}
 	});
+
+	var updateFieldID = function(currentFieldID, newfieldID){ 
+	//updates the field id of the field and its container whenever there is a change on the field name
+		$("#" + currentFieldID).attr("id", newfieldID);
+		$("#field_" + currentFieldID).attr("id", "field_" + newfieldID);
+	};
+
+	$(".table input").live('keyup', function(e){
+		var isTable = $(this).is('.tbl_name');
+    var isField = $(this).is('.field_name');
+
+    if(e.keyCode == 13){
+    	if(isField){
+    		createField();	
+    	}
+    }
+	});
+
+	$(".tbl_name").live("blur", function(){
+		current.table = $.trim($(this).val());
+	});
+
+	key("s", function(){
+		createTable(current.table);
+	});
+
+
 
