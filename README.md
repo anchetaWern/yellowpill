@@ -13,6 +13,8 @@ This application will be used for quick database schema generation and visualiza
 - Dropping fields
 - Generating Select Queries from multiple tables
 - Generating Update, Delete and Insert queries on a single table
+- Adding of where clause to queries
+- Transferring of fields from one table to another (only one field is possible at this time)
 
 
 ##Current Issues
@@ -21,9 +23,9 @@ This application will be used for quick database schema generation and visualiza
 - Script for creating new tables and fields executes a dozen of times
 - Cannot create new tables for newly created databases
 - UI Issues
-- Ordering of fields doesnt work
-- Ordering of fields doesnt work if the ordering will affect the ordering of other fields.
-This might require multiple queries but maybe its just an issue with the JavaScript code.
+- When selecting newly transferred fields (ctrl + x then ctrl + v) the table in which it was transferred is
+deselected
+- Cannot update the properties of newly transferred fields
 
 
 ##Configuration
