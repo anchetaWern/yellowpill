@@ -86,13 +86,18 @@ $databases = $db->query("
 		<h4>Link Tables</h4>
 		<a class="close-reveal-modal">&#215;</a>
 		<div class="join_fields">
+			<div class="table3" id="table3">
+				
+			</div>
+
 			<div class="table1">
 				
 			</div>
-			
+
 			<div class="table2">
 				
 			</div>
+
 		</div>
 		<input type="button" class="medium button" id="add_link" value="Link tables">
 	</div><!--/#join_modal-->

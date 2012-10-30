@@ -2,7 +2,7 @@
 session_start();
 require_once('config.php');
 require_once('yp.php');
-$yp = new yp(HOST, USER, PASSWORD, $_SESSION['db'], 0);
+$yp = new yp(HOST, USER, PASSWORD, $_SESSION['db'], 1);
 
 $action = $_POST['action'];
 

@@ -133,3 +133,16 @@
   margin-bottom: 20px;
   height: 36px;
 }
+
+#table3 {
+  width: 411px;
+  margin-bottom: 10px;
+}
+
+#table3 select {
+   width: 200px;
+}
+
+#add_link {
+  margin-top: 20px;
+}

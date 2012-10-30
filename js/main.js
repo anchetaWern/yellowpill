@@ -1,5 +1,3 @@
-
-
 	var current = {
 		'field' : '',
 		'table' : ''
@@ -10,8 +8,6 @@
 		'table' : ''
 	};
 
-	var linkedTables = [];
-	var linkedFields = [];
 	var selectedTables = {};
 	var selectedFields = {};
 
@@ -355,27 +351,27 @@
 		);
 	};
 
-	var modifyTable = function(){
+	var modifyTable = function(currentTable, oldField, newField){
 
-		if(isExisting('has_tbl') === 1){
-			var field = expandString(shortRegex, current.field);
-			
-			if(isExisting('has_field')){
-				updateTable('modify_field', current.table, old.field, field);
+		if(isExisting('has_tbl', currentTable, oldField) === 1){
+			var field = expandString(shortRegex, newField);
+
+			if(isExisting('has_field', currentTable, oldField)){
+				updateTable('modify_field', currentTable, oldField, field);
 			}else{
-				updateTable('add_field', current.table, old.field, field);
+				updateTable('add_field', currentTable, oldField, field);
 			}
 
 		}
 	};
 
-	var updateTable = function(action, table, old_field, current_field){
+	var updateTable = function(action, table, oldField, currentField){
 
 		$.post(
 			"invoker.php", 
 			{
 			"action" : action, "table" : table, 
-			"old_field" : old_field, "new_field" : current_field
+			"old_field" : oldField, "new_field" : currentField
 			},
 			function(response){
 				console.log(response);
@@ -410,18 +406,14 @@
 		}
 	};
 
-	var joinTables = function(){
-		var linked_tables = getLinkedTables();
-		var child_table = linked_tables[1];
-		var main_table = linked_tables[0];
-		var child_field = linkedFields[1];
-		var main_field = linkedFields[0];
+	var joinTables = function(mainTable, childTable, mainField, childField){
+
 		$.post(
 			"invoker.php", 
 			{
 			"action" : "join_tbl",
-			"child_table" : child_table, "main_table" : main_table, 
-			"child_field" : child_field, "main_field" : main_field
+			"child_table" : childTable, "main_table" : mainTable, 
+			"child_field" : childField, "main_field" : mainField
 			},
 			function(response){
 				console.log(response);
@@ -436,17 +428,13 @@
 		$('.fields').removeClass('active_field');
 	};
 
-	var isExisting = function(action){
-		
-		old.field = $.trim(old.field);
-		current.table = $.trim(current.table);
-		console.log(old_field);
+	var isExisting = function(action, currentTable, oldField){
 
 		var field_count = 0;
 		$.ajax({
 			type: "POST",
 			url : "invoker.php",
-			data : {"action" : action, "table" : current.table, "field" : old.field},
+			data : {"action" : action, "table" : currentTable, "field" : oldField},
 			async : false
 		}).done(function(response){
 			field_count = response;
@@ -784,38 +772,56 @@
 		if(activetable_count === 2){
 			var table1 = $(".table1");
 			var table2 = $(".table2");
+			var table3 = $(".table3");
+
+			var mainHeader = $("<label>").text("Main table");
+			var select1 = $("<select>").attr({"name" : "select1"});
+			var select2 = $("<select>").attr({"name" : "select2"});
+			var select3 = $("<select>").attr({"name" : "select3", "id" : "select3"});
 
 			table1.empty();
 			table2.empty();
+			table3.empty();
+
 			$(".active_table").each(function(index, val){
 				var table = $(this).attr("id");
 				var fields = getFields(table);
 				var fieldCount = fields.length;
 
 				var header = $("<label>").text(table);
-				var select1 = $("<select>").attr({"name" : "select1"});
-				var select2 = $("<select>").attr({"name" : "select2"});
+				var tableOption = $("<option>").attr({"value" : table}).text(table);
+				select3.append(tableOption);
 
 				if(index === 0){
+					select1.attr("id", "join_" + table);
 					table1.append(header);
 					for(var x = 0; x <= fieldCount; x++){
 						var fieldName = fields[x];
 						var option = $("<option>").attr({"value" : fieldName}).text(fieldName);
 						select1.append(option);
 					}
-					table1.append(select1);
+					
+
 				}else{
+					select2.attr("id", "join_" + table);
 					table2.append(header);
 					for(var x = 0; x <= fieldCount; x++){
 						var fieldName = fields[x];
 						var option = $("<option>").attr({"value" : fieldName}).text(fieldName);
 						select2.append(option);
 					}
-					table2.append(select2);
+					
 				}
-
-				$("#link_modal").reveal();
 			});
+
+			table3.append(mainHeader);
+			table3.append(select3);
+
+			table1.append(select1);
+			table2.append(select2);
+
+			
+			$("#link_modal").reveal();
 
 		}else{
 			noty_err.text = "Select only two tables before trying to join";
@@ -824,7 +830,42 @@
 		}
 	});
 
+	var getChildTable = function(mainTable){
+		var childTable;
+		$("select[name=select3] option").each(function(){
+		 var table = $(this).val();
+		 if(table !== mainTable){
+		   childTable = table;
+		 }
+		});
+		return childTable;
+	};
+
 	$("#add_link").live("click", function(){
-		joinTables();
+		var mainTable = $("#select3").val();
+		var childTable = getChildTable(mainTable);
+		var mainField = $('#join_' + mainTable).val();
+		var childField = $('#join_' + childTable).val();
+
+		joinTables(mainTable, childTable, mainField, childField);
+	});
+
+	key("t", function(){
+		generateTable();
+	});
+
+
+	$(".field_name").live('click', function(){
+		var field = $(this).val();
+		var field_data = field.split(":");
+		old.field = field_data[0];
+	});
+
+	$(".field_name").live('blur', function(){
+		if($(this).val() !== ""){
+
+			current.field = $(this).val();
+			modifyTable(current.table, old.field, current.field);
+		}
 	});
 
