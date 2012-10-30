@@ -11,6 +11,9 @@
 	var selectedTables = {};
 	var selectedFields = {};
 
+	var detachedField;
+	var detachedFieldTable;
+
 	var noty_success = {
 		"text":"Operation was successfully completed!",
 		"layout":"top",
@@ -954,6 +957,23 @@
 		renameTable(old.table, current.table);
 	});
 
+	var dropField = function(tableName, fields, remove){
+		$.post(
+			"invoker.php", 
+			{"action" : "drop_field", "table" : tableName, "fields" : fields},
+			function(response){
+				console.log(response);
+				if(remove === 1){
+					$("#" + tableName + " #" + fields).remove();
+				}
+			}
+		);
+	};
+
+	key("del", function(){
+		dropField(current.table, current.field.split(".")[1], 1);
+	});
+
 	key("s", function(){
 		createTable(current.table);
 	});
@@ -1001,6 +1021,23 @@
 
 	key('alt+w', function(){
 		$('#where_modal').reveal();
+	});
+
+	key("ctrl+x", function(){
+		detachedField = $("#" + current.table + " #" + current.field.split(".")[1]).detach();
+		detachedFieldTable = current.table;
+	});
+
+	key("ctrl+v", function(){
+		detachedField.appendTo($("#" + current.table)).removeClass("active_field");
+		var tableName = current.table;
+		var fieldName = detachedField.attr("id");
+
+		var field = $.trim($("#" + tableName + " #" + fieldName + " input").val());
+		field = expandString(shortRegex, field);
+
+		updateTable("add_field", current.table, "", field);
+		dropField(detachedFieldTable, fieldName, 0);
 	});
 
 
