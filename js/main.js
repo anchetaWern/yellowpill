@@ -337,13 +337,13 @@
 		);
 	};
 
-	var dropTable = function(){
+	var dropTable = function(currentTable){
 		$.post(
 			"invoker.php", 
-			{"action" : "drop_tbl", "table" : current.table},
+			{"action" : "drop_tbl", "table" : currentTable},
 			function(response){
 				console.log(response);
-				$('#' + current.table).remove();
+				$('#' + currentTable).remove();
 				noty_success.text = "Successfully dropped table!";
 				noty(noty_success);
 			}
@@ -460,7 +460,7 @@
 		return current.table;
 	};
 
-	var selectQuery = function(){ //generates an sql select query
+	var selectQuery = function(selectedTables, selectedFields, currentTable){ //generates an sql select query
 		var query = "SELECT ";
 		var number_of_tables = getObjectLength(selectedTables);
 		var number_of_fields = getObjectLength(selectedFields);
@@ -469,11 +469,11 @@
 		var field_index = 1;
 
 		if(number_of_tables === 1){
-			var tablefield_count = $('#' + current.table + ' .fields').children().length;
-			var tableselectedfield_count = $('#' + current.table + ' .active_field').length;
+			var tablefield_count = $('#' + currentTable + ' .fields').children().length;
+			var tableselectedfield_count = $('#' + currentTable + ' .active_field').length;
 
 			if(tablefield_count === tableselectedfield_count){
-				query += "* FROM " + current.table;
+				query += "* FROM " + currentTable;
 
 			}else{
 				for(var field in selectedFields){
@@ -490,7 +490,7 @@
 				
 			}
 
-			query += " FROM " + current.table;
+			query += " FROM " + currentTable;
 
 		}else{
 			for(var field in selectedFields){
@@ -523,21 +523,34 @@
 			}
 		}
 
-		updateWhereModal();
+		updateWhereModal(selectedFields);
 		updateQueryString(query);
 		return query;
 	};
 
+	var getSimilarFieldsCount = function(tablename, fieldname){
+		var similar_fields = [];
+		for(table in selectedTables){
+			$('#' + table + ' .fields').each(function(index, html){
+				var field = $(html).attr('id');
+				if(fieldname === field && tablename !== table){
+					similar_fields.push(field);
+				}
+			});
+		}
+		return similar_fields.length;
+	};		
 
-	var changeQuery = function(query_type){
+
+	var updateQuery = function(query_type, currentTable, selectedFields){ 
 		var number_of_fields = getObjectLength(selectedFields);
 		var field_index = 1;
 		var query;
 
-		if(query_type === "UPDATE"){
-		  query = "UPDATE " + current.table + " SET ";
-		}else if(query_type === "INSERT"){
-		  query = "INSERT INTO " + current.table + " SET ";
+		if(query_type === "update"){
+		  query = "UPDATE " + currentTable + " SET ";
+		}else if(query_type === "insert"){
+		  query = "INSERT INTO " + currentTable + " SET ";
 		}
 		
 		for(var field in selectedFields){
@@ -555,15 +568,15 @@
 		return query;
 	};
 
-	var deleteQuery = function(){
-		var query = "DELETE FROM " . current.table;
+	var deleteQuery = function(currentTable){
+		var query = "DELETE FROM " + currentTable;
 
 		updateWhereModal();
 		updateQueryString(query);
 		return query;
 	};
 
-	var updateWhereModal = function(){
+	var updateWhereModal = function(selectedFields){
 		$(".selected_fields, .field_values, .custom_values").empty();
 
 		var fields_container = $(".selected_fields");
@@ -920,6 +933,16 @@
 		);
 	};
 
+	var successMessage = function(msg){
+		noty_success.text = msg;
+		noty(noty_success);
+	};
+
+	var errorMessage = function(msg){
+		noty_err.text = msg;
+		noty(noty_err);
+	};
+
 	$(".tbl_name").live("click", function(){
 		var tblName = $.trim($(this).val());
 		old.table = tblName;
@@ -935,5 +958,49 @@
 		createTable(current.table);
 	});
 
+	key("d", function(){
+		dropTable(current.table);
+	});
+	
+	key("a", function(){
+		$("#" + current.table + " .fields").addClass("active_field");
+		selectedFields = getSelectedFields();
+	});
+
+	key("alt+s", function(){
+		if(getObjectLength(selectedTables) >= 1){
+			selectQuery(selectedTables, selectedFields, current.table);
+		}else{
+			errorMessage("Please select one or more tables");
+		}
+	});
+
+	key("alt+u", function(){
+		if(getObjectLength(selectedTables) === 1){
+			updateQuery("update", current.table, selectedFields);
+		}else{
+			errorMessage("You can only select 1 table for an update query");
+		}
+	});
+
+	key("alt+i", function(){
+		if(getObjectLength(selectedTables) === 1){
+			updateQuery("insert", current.table, selectedFields);
+		}else{
+			errorMessage("You can only select 1 table for an insert query");
+		}
+	});
+
+	key("alt+x", function(){
+		if(getObjectLength(selectedTables) === 1){
+			deleteQuery(current.table);
+		}else{
+			errorMessage("You can only select 1 table for a delete query");
+		}
+	});
+
+	key('alt+w', function(){
+		$('#where_modal').reveal();
+	});
 
 
