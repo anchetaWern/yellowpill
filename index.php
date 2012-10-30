@@ -35,6 +35,7 @@ $databases = $db->query("
 			<button type="button" class="small button" id="btn_connect" >Connect</button>
 		</div>
 
+		
 		<div class="queries">
 			<label for="query_string">Query String</label>
 			<textarea id="query_string">
@@ -56,14 +57,14 @@ $databases = $db->query("
 				Insert
 			</div>
 		</div><!--/.query_options-->
-	</div><!--/.container-->
+	</div><!--/#form_container-->
 	
 	<div class="existing_tables"  style="display:none;">
 	
 	</div><!--/.existing_tables-->
 
 	<div id="where_modal" class="reveal-modal large">
-	  <h4>Where</h4>
+	  <h4>Where Clause</h4>
 	  <a class="close-reveal-modal">&#215;</a>
 
 	  <div class="selected_fields">
@@ -80,6 +81,21 @@ $databases = $db->query("
 
 	  <input type="button" class="medium button" id="add_where" value="Add to Query">
 	</div><!--/#where_modal-->
+
+	<div id="link_modal" class="reveal-modal medium">
+		<h4>Link Tables</h4>
+		<a class="close-reveal-modal">&#215;</a>
+		<div class="join_fields">
+			<div class="table1">
+				
+			</div>
+			
+			<div class="table2">
+				
+			</div>
+		</div>
+		<input type="button" class="medium button" id="add_link" value="Link tables">
+	</div><!--/#join_modal-->
 
 </div><!--/.container-->
 
@@ -98,8 +114,9 @@ $databases = $db->query("
 						var script = $("<script>").attr({"id" : "mainscript" , "src" : "js/main.js"});;
 						var container = $("#container");
 						script.insertAfter(container);
+						
 					}
-					shortenFields();
+					
 		});
 
 	});

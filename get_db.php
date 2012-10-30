@@ -22,7 +22,7 @@ if(!empty($tables)){
 		<div class="table drag_tbl" id="<?php echo $table; ?>">
 			<div class="tbl_header">
 				<input type="text" class="tbl_name" value="<?php echo $table; ?>" placeholder="table name">
-				<input type="checkbox" class="connector"/>
+				
 			</div>
 			<div class="tbl_fields">
 			<?php 
@@ -45,3 +45,4 @@ if(!empty($tables)){
 <?php
 }
 ?>
+

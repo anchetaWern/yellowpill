@@ -1,17 +1,19 @@
-	var current_table;
-	var current_field;
-	var old_field;
-	var old_table;
+
 
 	var current = {
-		'table' : '',
-		'field' : ''
+		'field' : '',
+		'table' : ''
 	};
 
 	var old = {
 		'field' : '',
 		'table' : ''
 	};
+
+	var linkedTables = [];
+	var linkedFields = [];
+	var selectedTables = {};
+	var selectedFields = {};
 
 	var noty_success = {
 		"text":"Operation was successfully completed!",
@@ -43,10 +45,9 @@
 
 
 
-	var makeDraggable = function(){
+	var makeDraggable = function(){ 
 		$(".drag_field, .drag_tbl").draggable(); 
 		
-
 		$(".table").droppable({
 			drop: function(event, ui){
 				
@@ -55,13 +56,34 @@
 				var tbl_fields = current_container.children('.tbl_fields');
 				var field = $('#' + field_id).detach().css({top: 0, left: 0}).appendTo(tbl_fields);
 				
-				
 			}
 		});
 	};
 
+
+	var makeSortable = function(){
+		$(".tbl_fields").sortable({
+			update: function(event, ui){
+				var field_container = ui.item[0].id;
+				var base_field;
+				var position;
+
+				if($("#" + field_container).prev().length){
+					position = "AFTER";
+					base_field = $("#" + field_container).prev().attr("id");
+				}else{
+					position = "FIRST";
+					
+				}
+
+				var field_to_move = expandString(shortRegex, $('#' + field_container + ' input').val());
+				orderField(field_to_move, position, base_field);
+			}
+		});
+		$(".tbl_fields").disableSelection();
+	}
+
 	var orderField = function(field_to_move, position, base_field){
-		
 		$.post("invoker.php", 
 			{
 				"action" : "order_field", 
@@ -76,38 +98,6 @@
 		);
 	};
 
-	var makeSortable = function(){
-		$(".tbl_fields").sortable({
-			update: function(event, ui){
-				var field_container = ui.item[0].id;
-				var base_field;
-				var position;
-
-				
-
-				if($("#" + field_container).prev().length){
-					position = "AFTER";
-					base_field = $("#" + field_container).prev().attr("id");
-				}else{
-					position = "FIRST";
-					
-				}
-
-				var field_to_move = expandString(shortRegex, $('#' + field_container + ' input').val());
-
-				orderField(field_to_move, position, base_field);
-
-			}
-		});
-		$(".tbl_fields").disableSelection();
-		
-	}
-
-	var linkedTables = [];
-	var linkedFields = [];
-	var selectedTables = {};
-	var selectedFields = {};
-
 	makeSortable();
 
 	$(".table").hover(function(){
@@ -121,50 +111,22 @@
 
 	var getSelectedTables = function(){
 		var selectedTables = {};
-	  $('.active_table').each(function(index, html){
-	  	var table = $(html).attr('id');
+	  $('.active_table').each(function(){
+	  	var table = $(this).attr('id');
 	    selectedTables[table] = table;
 	  });
 	  return selectedTables;
 	};
 
-	$(".table").live('click', function(e){
-		e.stopPropagation()
-		var tbl_id = $(this).find('.tbl_name').val();
-		current.table = tbl_id;
-
-
-		$(this).removeClass('hover_table');
-		var table_name = $(this).attr('id');
-
-		if(e.ctrlKey === false){
-			
-			$(".table").removeClass('active_table');
-			$(".fields").removeClass('active_field');
-
-			linkedTables = [];
-			linkedTables.push(table_name);
-			selectedTables = {};
-			selectedFields = {};
-		}else{
-
-
-			if($(this).is('.active_table')){
-				$(this).removeClass('active_table');
-
-			}else{
-				$(this).addClass('active_table');
-				if($('.active_table').length < 2){
-					
-					if(!linkedTables[table_name]){
-						linkedTables.push(table_name);
-						
-					}
-				}
-			}
-		}
-		selectedTables = getSelectedTables();
-	});
+	var getSelectedFields = function(){
+		var selectedFields = {};
+		$('.active_field').each(function(){
+			var table = $($(this).parents('div')[1]).attr('id');
+			var field = $(this).attr('id');
+			selectedFields[table + "." + field] = table + "." + field;
+		});
+		return selectedFields;
+	};
 
 	var createField = function(){
 		var field_container = $("<div>").addClass("fields drag_field");
@@ -425,14 +387,27 @@
 
 	var createJoinFlag = function(table, linked_tables){
 		var flagtext;
-		if(linked_tables.length == 1){
-			flagtext = "main";
-		}else{
-			flagtext = "child";
-		}
-		var flag = $("<div>").addClass("flag").text(flagtext);
-		flag.insertAfter($('#' + table + ' .tbl_fields'));
+		var fieldCount = $("#" + table + " .active_field").length;
+		var activeTable = $("#" + table).is(".active_table");
+		console.log("is active: " + activeTable);
 		
+		if(getObjectLength(selectedTables) <= 2 && fieldCount <= 1 && activeTable === false){
+			if(linked_tables.length === 1){
+				flagtext = "main";
+			}else{
+				flagtext = "child";
+			}
+			var flag = $("<div>").addClass("flag").text(flagtext);
+			flag.insertAfter($('#' + table + ' .tbl_fields'));
+		}
+	};
+
+	var removeJoinFlag = function(table, all){
+		if(all){ 
+			$(".flag").remove();
+		}else{
+			$("#" + table + " .flag").remove();
+		}
 	};
 
 	var joinTables = function(){
@@ -480,30 +455,7 @@
 		return Number(field_count);
 	};
 
-	var getLinkedTables = function(){//gets the tables that are selected for linking by the current user
-		var linkedTables = [];
-		$('.connector:checked').parents('div.table').each(function(index, html){
-			var table = $(html).attr('id');
-			linkedTables.push(table);
-		});
-		return linkedTables;
-	};
-
-	$(".connector").live('click', function(){
-		var table_name = $($(this).parents('div')[1]).attr("id");
-		var connectedtable_count = $('.connector:checked').length;
-		var linkedTables = getLinkedTables();
-
-		if(connectedtable_count <= 2){
-			createJoinFlag(table_name, linkedTables);
-		}else{
-			noty_err.text = "Only two tables can be linked at a time!";
-			noty(noty_err);
-		}
-		
-	});
-
-	var updateQueryString = function(querystring){
+	var updateQueryString = function(querystring){ 
 		$("#query_string").val(querystring);
 	};
 
@@ -517,11 +469,11 @@
 		return count;
 	};
 
-	var getCurrentTable = function(){
+	var getCurrentTable = function(){ //returns the current table
 		return current.table;
 	};
 
-	var selectQuery = function(){
+	var selectQuery = function(){ //generates an sql select query
 		var query = "SELECT ";
 		var number_of_tables = getObjectLength(selectedTables);
 		var number_of_fields = getObjectLength(selectedFields);
@@ -583,7 +535,6 @@
 				table_index++;
 			}
 		}
-
 
 		updateWhereModal();
 		updateQueryString(query);
@@ -659,217 +610,11 @@
 		field_values.append(select_field2);
 	};
 
-	var getSimilarFieldsCount = function(tablename, fieldname){
-		var similar_fields = [];
-		for(table in selectedTables){
-			$('#' + table + ' .fields').each(function(index, html){
-				var field = $(html).attr('id');
-				if(fieldname === field && tablename !== table){
-					similar_fields.push(field);
-				}
-			});
-		}
-		return similar_fields.length;
-	};	
-
-	var selectAllFields = function(){
-		$("#" + current.table + " .fields").addClass("active_field");
-		selectedFields = getSelectedFields();
-	};
-
-
-
-	key('a', function(){
-		selectAllFields();
-	});
-
-	key('f', function(){ 
-		createField();
-	});
-
-	key('t', function(){ //generate table
-		generateTable();
-	});
-
-	key('s', function(){ //create table
-		createTable();
-	});
-
-	key('d', function(){ //drop table
-		dropTable();
-	});
-
-	key('j', function(){ //join tables
-		joinTables();
-	});
-
-	key('w', function(){
-		makeDraggable();
-	});
-
-	key('e', function(){
-		makeSortable();
-	});
-
-	var dropField = function(table, fields){
-		$.post("invoker.php", 
-			{"action" : "drop_field", "table" : table, "fields" : fields},
-			function(response){
-				console.log(response);
-				$('#' + fields).remove();
-			}
-		);
-	};
-
-	key('del', function(){ 
-		dropField(current.table, old_field);
-	});
-
-	$(".fields").hover(function(){
-		if(!$(this).is(".active_field")){
-			$(this).addClass('hover_field');
-			
-		}
-	}, function(){
-		
-			$(this).removeClass('hover_field');
-
-	});
-
-	var getSelectedFields = function(){
-		var selectedFields = {};
-    $('.active_field').each(function(index, html){
-
-			var table = $($(html).parents('div')[1]).attr('id');
-			var field = $(html).attr('id');
-
-	    if(!selectedFields[table + "." + field]){
-				selectedFields[table + "." + field] = table + "." + field;
-			}
-
-    });
-
-    return selectedFields;
-	};
-
-	var isLinkedTable = function(field){
-		return $($('#' + field).parents('div')[0]).siblings().children('input[type=checkbox]').is(':checked');
-	};
-
-	$(".fields").live('click', function(e){
-		e.stopPropagation();
-		
-		$(this).removeClass('hover_field');
-		var field_name = $(this).attr('id');
-		var table_name = $(this).parents('div')[1].id;
-		current.field = field_name;
-
-		var field = $(this).find("input").val();
-		var field_data = field.split(":");
-		old_field = field_data[0];
-
-		if(e.ctrlKey === false){
-			$(this).addClass('active_field');
-			$(".fields").removeClass('active_field');
-
-			if(isLinkedTable(field_name)){
-				linkedFields = [];
-				linkedFields.push(field_name);
-			} 
-
-
-
-			selectedFields = {};
-		}else{
-
-			if($(this).is('.active_field')){
-
-				$(this).removeClass('active_field');
-	
-			}else{
-				current.table = table_name;
-				$('#' + table_name).addClass('active_table');
-
-				$(this).addClass('active_field');
-				if($('.active_field').length < 2){
-					
-					if(!linkedFields[field_name]){
-						linkedFields.push(field_name);
-						
-					}
-				}
-			}
-		}
-
-		selectedFields = getSelectedFields();
-	});
-
-		var hasLinkedField = function(){
-			return $('#' + field_name).siblings('.active_field').length;
-		};
-
-		var addLinkedField = function(field_name){
-			if(hasLinkedField(field_name) === 0){
-				linkedFields.push(field_name);
-			}
-		};
-
-	$(".existing_tables input").live('keyup', function(e){
-		var isTable = $(this).is('.tbl_name');
-    var isField = $(this).is('.field_name');
-
-    if(e.keyCode == 13){
-    	if(isField){
-    		createField();	
-    	}
-    }
-
-    var id = $(this).val();
-    $(this).attr("id", "field_" +id);
-
-   	if(isField){
-   		$(this).parents('.fields').attr("id", id.split(":")[0]);
-
-    }else if(isTable){
-    	current.table = id;
-    	$($(this).parents('div')[1]).attr("id", id);
-    	
-    }
-	});
-
-	$(".field_name").live('click', function(){
-		var field = $(this).val();
-		var field_data = field.split(":");
-		old.field = field_data[0];
-	});
-
-	$(".field_name").live('blur', function(){
-		if($(this).val() !== ""){
-
-			current.field = $(this).val();
-			modifyTable();
-		}
-	});
-
-	$(".tbl_name").live('click', function(){
-		old.table = $.trim($(this).val());
-	});
-
-	$(".tbl_name").live('blur', function(){
-		var new_table = $.trim($(this).val());
-		$.post("invoker.php", 
-			{"action" : "rename_tbl", "current.table" : old.table, "new_table" : new_table}, 
-			function(response){
-				console.log(response);
-			}
-		);
-	});
-
 	$("#add_where").live('click', function(){
 		var query = $.trim($("#query_string").val());
 		var where = $.trim($('.select_field1').val());
 		var value;
-	
+
 		var where_regex = /where/ig
 
 		if(!where_regex.test(query)){
@@ -900,72 +645,186 @@
 		$(".custom_value").val("");
 	});
 
-
-
-	$(".query_options div").hover(function(){
-		$(this).addClass('hover_option');
-	}, function(){
-		$(this).removeClass('hover_option');
-	});
-
-	var changeQueryType = function(query_type){
-		$('.query_options div').removeClass('active_option');
-		$('div[data-qoption='+query_type+']').addClass('active_option');
+	var addJoinTable = function(table){
+		if(linkedTables.length <= 1 && linkedTables.indexOf(table) === -1){
+			linkedTables.push(table);
+		}
 	};
 
-	key('alt+s', function(){
-		changeQueryType("select");
-		selectQuery();
+	var resetList = function(table){
+		linkedTables = [];
+		selectedTables = {};
+		addJoinTable(table);
+		removeJoinFlag(table, 1);
+
+		selectedFields = {};
+		linkedFields = [];
+	};
+
+	//event handler for clicking on table
+	/*
+	Clicking on the table without pressing ctrl will select the table
+	but it will deselect all the previously selected tables and the fields of that table
+
+	if ctrl is pressed while clicking on the table the selected table will be added to the
+	selected tables it also adds to the linked tables if 0 or 1 tables is already selected
+	 */
+	$(".table").live("click", function(e){
+		var table = $(this).attr("id");
+		$(this).removeClass("hover_table");
+
+		if($(this).is(".active_table")){
+
+			$(this).removeClass("active_table");
+			deselectFields(table, 1);
+			reselectFields(table);
+
+			selectedTables = {};
+			selectedFields = {};
+
+		}else{
+			current.table = table;
+			current.field = "";
+			if(e.ctrlKey){
+
+				$(this).addClass("active_table");
+
+			}else{
+				$(".table").removeClass("active_table");
+				$(this).addClass("active_table");
+				deselectFields(table, 2);
+				reselectFields(table);
+
+				selectedTables = {};
+				selectedFields = {};
+			}
+
+		}
+		selectedTables = getSelectedTables();
+		selectedFields = getSelectedFields();
 	});
 
-	key('alt+u', function(){
-		if(getObjectLength(selectedTables) === 1){
-			changeQueryType("update");
-			changeQuery("UPDATE");
+	var getFields = function(table, type){ //gets the active fields of a specific table
+		var fields = [];
+		if(type === 1){ //supply the array with active fields only
+			$('#' + table + ' .active_field').each(function(){
+				 fields.push($(this).attr('id'));
+			});
+		}else{ //supply the array with all the fields
+			$('#' + table + ' .fields').each(function(){
+				 fields.push($(this).attr('id'));
+			});
+		}
+		return fields;
+	}
+
+	var deselectFields = function(table, type){
+		if(type === 1){
+			$("#" + table + " .active_field").removeClass("active_field");
+
 		}else{
-			noty_err.text = "You can only create an update query one table at a time";
-			noty(noty_err);
+			$(".active_field").removeClass("active_field"); //deselect all selected fields
+
+		}
+	};
+
+	var reselectFields = function(table){
+		var activeFields = getFields(table, 1);
+		$.each(activeFields, function(index, id){ 
+			$("#" + id).addClass("active_field"); //reselect the fields of the current table
+		});
+	};
+
+	//event handler for clicking on fields
+	/*
+	selecting a field automatically selects the table
+	 */
+	$(".fields").live("click", function(e){
+		e.stopPropagation();
+		var table = $($(this).parents("div")[1]).attr("id");
+		var field = $(this).attr("id");
+
+		if($(this).is(".active_field")){
+			$(this).removeClass("active_field");
+			deselectFields(table, 1);
+			reselectFields(table);
+
+			selectedTables = {};
+			selectedFields = {};
+		
+		}else{
+			current.table = table;
+			current.field = table + "." + field;
+			if(e.ctrlKey){
+
+				$("#" + table).addClass("active_table");
+				$(this).addClass("active_field");
+			}else{
+				$(".table").removeClass("active_table");
+				$("#" + table).addClass("active_table");
+				deselectFields(table, 2);
+				reselectFields(table);
+
+				selectedTables = {};
+				selectedFields = {};
+
+				$(".active_field").removeClass("active_field");
+				$(this).addClass("active_field");
+			}
 		}
 
+		selectedTables = getSelectedTables();
+		selectedFields = getSelectedFields();
 	});
 
-	key('alt+d', function(){
-		if(getObjectLength(selectedTables) === 1){
-			changeQueryType("delete");
-			deleteQuery();
+	key("j", function(){
+
+		var activetable_count = $(".active_table").length;
+	
+		if(activetable_count === 2){
+			var table1 = $(".table1");
+			var table2 = $(".table2");
+
+			table1.empty();
+			table2.empty();
+			$(".active_table").each(function(index, val){
+				var table = $(this).attr("id");
+				var fields = getFields(table);
+				var fieldCount = fields.length;
+
+				var header = $("<label>").text(table);
+				var select1 = $("<select>").attr({"name" : "select1"});
+				var select2 = $("<select>").attr({"name" : "select2"});
+
+				if(index === 0){
+					table1.append(header);
+					for(var x = 0; x <= fieldCount; x++){
+						var fieldName = fields[x];
+						var option = $("<option>").attr({"value" : fieldName}).text(fieldName);
+						select1.append(option);
+					}
+					table1.append(select1);
+				}else{
+					table2.append(header);
+					for(var x = 0; x <= fieldCount; x++){
+						var fieldName = fields[x];
+						var option = $("<option>").attr({"value" : fieldName}).text(fieldName);
+						select2.append(option);
+					}
+					table2.append(select2);
+				}
+
+				$("#link_modal").reveal();
+			});
+
 		}else{
-			noty_err.text = "You can only create a delete query one table at a time";
+			noty_err.text = "Select only two tables before trying to join";
 			noty(noty_err);
+
 		}
-	});	
-
-	key('alt+i', function(){
-		if(getObjectLength(selectedTables) === 1){
-			changeQueryType("insert");
-			changeQuery("INSERT");
-		}else{
-			noty_err.text = "You can only create a insert query one table at a time";
-			noty(noty_err);
-		}
-	});	
-
-	key('alt+w', function(){
-		$('#where_modal').reveal();
 	});
 
-	var detached_field; //change later dude
-	key('ctrl+x', function(){
-		detached_field = $('#' + current.field).detach();
-
+	$("#add_link").live("click", function(){
+		joinTables();
 	});
 
-	key('ctrl+v', function(){
-		var table = $('#' + current.table);
-		detached_field.appendTo(table);
-		var detached_field_value = detached_field.find('input').val();
-		old_field = detached_field.attr("id");
-
-		current.field = expandString(shortRegex, detached_field_value);
-		//updateTable('add_field');
-		dropField();
-	});

@@ -122,3 +122,14 @@
   float: right;
   margin-right: 91px;
 }
+
+.join_fields div{
+	float: left;
+	width: 200px;
+	margin-right: 10px;
+}
+
+.join_fields {
+  margin-bottom: 20px;
+  height: 36px;
+}
