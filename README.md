@@ -132,6 +132,31 @@ The following shortcuts for field definitions are used in the app.
 			'CT' : 'CURRENT_TIMESTAMP'
 ```
 
+##Conditions
+
+Here are some conditions to keep in mind before performing an update to the database structure. 
+If there is an error with the operation that you're trying to do then one of these conditions may not have been met.
+
+- A table cannot have two fields with the same name
+- A base field cannot be transferred from one table to another
+- Tables should have unique names
+- A table can only have 1 field that acts as the primary key
+- A table may or may not have a primary key. You can choose to make a primary key field auto-increment by supplying the ```AI``` option
+- Default values for fields must have the same data type with the data type that you have defined for that specific field.
+For example if the data type is timestamp you can't have a default value of "A" or 123, instead you can have the default data as
+current timestamp ```CT```
+
+
+##Terms
+
+Here are some of the terms that I've used:
+
+- **Base field** - a field referenced by a field from another table
+- **Child field** - a field which references a base field
+- **Base table** - a table that is referenced from another table
+- **Child table** - a table referencing another table
+
+
 ##Todo
 
 - Improve response messages. Currently the application does not issue an error if the operation cannot be performed or something went wrong
