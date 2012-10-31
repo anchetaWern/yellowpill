@@ -23,9 +23,6 @@ This application will be used for quick database schema generation and visualiza
 - Script for creating new tables and fields executes a dozen of times
 - Cannot create new tables for newly created databases
 - UI Issues
-- When selecting newly transferred fields (ctrl + x then ctrl + v) the table in which it was transferred is
-deselected
-- Cannot update the properties of newly transferred fields
 
 
 ##Configuration

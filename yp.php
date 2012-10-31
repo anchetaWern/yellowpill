@@ -170,12 +170,9 @@ class yp{
 	}
 
 	public function dropTable($table){
-		$query = "DROP TABLE " . $table;
-		if($this->mode == 0){
-			return $query;
-		}else{
-			$this->db->query($query);
-		}
+		$query = "DROP TABLE " .  $this->dbname . '.'.  $table;
+		$query = $this->trimQuery($query);
+		return $this->getResult($query);
 	}
 	public function getTables(){
 		$tables = array();

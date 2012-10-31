@@ -94,7 +94,11 @@
 				"base_field" : base_field
 			},
 			function(response){
-				console.log(response);
+				if(response == 1){
+					successMessage("Fields successfully reordered");
+				}else{
+					errorMessage("Something went wrong while trying to reorder the fields");
+				}
 			}
 		);
 	};
@@ -333,10 +337,13 @@
 			"invoker.php", 
 			{"action" : "create_tbl", "table" : currentTable, "fields" : expanded_field},
 			function(response){
-				console.log(response);
-				console.log("Created Table");
-				noty_success.text = "Successfully created table!";
-				noty(noty_success);
+				if(response === 1){
+					console.log("Created Table");
+					noty_success.text = "Successfully created table!";
+					noty(noty_success);
+				}else{
+					errorMessage("Something went wrong while creating the table");
+				}
 			}
 		);
 	};
@@ -347,9 +354,15 @@
 			{"action" : "drop_tbl", "table" : currentTable},
 			function(response){
 				console.log(response);
-				$('#' + currentTable).remove();
-				noty_success.text = "Successfully dropped table!";
-				noty(noty_success);
+				if(response == 1){
+
+					$('#' + currentTable).remove();
+					noty_success.text = "Successfully dropped table!";
+					noty(noty_success);
+					
+				}else{
+					errorMessage("The table cannot be dropped, please check if it has connection with the others");
+				}
 			}
 		);
 	};
@@ -378,8 +391,16 @@
 			},
 			function(response){
 				console.log(response);
-				noty_success.text = "Successfully modified table!";
-				noty(noty_success);
+				if(response == 1){
+					if(action == "add_field"){
+						successMessage("Successfully added field");
+					}else if(action == "modify_field"){
+						noty_success.text = "Successfully modified table!";
+						noty(noty_success);
+					}
+				}else{
+					errorMessage("");
+				}
 			}
 		);
 	};
@@ -420,6 +441,11 @@
 			},
 			function(response){
 				console.log(response);
+				if(response == 1){
+					successMessage("Successfully added foreign key to child field");
+				}else{
+					errorMessage("Cannot add foreign key on child field, data types might be incompatible");
+				}
 				removeConnection();
 
 			}
@@ -933,7 +959,11 @@
 				"new_table" : newTableName
 			},
 			function(response){
-				console.log(response);
+				if(response == 1){
+					successMessage("Successfully renamed table");
+				}else{
+					errorMessage("Something went wrong while renaming the table");
+				}
 			}
 		);
 	};
@@ -965,8 +995,13 @@
 			{"action" : "drop_field", "table" : tableName, "fields" : fields},
 			function(response){
 				console.log(response);
-				if(remove === 1){
-					$("#" + tableName + " #" + fields).remove();
+				if(response == 1){
+					if(remove === 1){
+						$("#" + tableName + " #" + fields).remove();
+					}
+					successMessage("Field successfully dropped");
+				}else{
+					errorMessage("Cannot drop a parent field");				
 				}
 			}
 		);
