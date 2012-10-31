@@ -10,5 +10,5 @@ $yp = new yp("localhost", "root", "1234", "redbean", 0);
 //echo $yp->modifyFields($table, $fields);
 //echo $yp->dropTable("tbl_awesome");
 //echo $yp->createDatabase("oroboros");
-echo $yp->dropFields("boom", "doom");
+echo $yp->addFields("tbl_dingo", array("balastic: INT(20)   NULL", "shifuds: VARCHAR(22)   NULL"));
 ?>

@@ -11,7 +11,7 @@
 	var selectedTables = {};
 	var selectedFields = {};
 
-	var detachedField;
+	var detachedFields = [];
 	var detachedFieldTable;
 
 	var noty_success = {
@@ -64,6 +64,7 @@
 		$(".tbl_fields").sortable({
 			update: function(event, ui){
 				var field_container = ui.item[0].id;
+				$(ui.item).css("z-index", 2);
 				var table = $(ui.item).parents("div")[1].id;
 				var base_field;
 				var position;
@@ -751,6 +752,7 @@
 	 */
 	$(".fields").live("click", function(e){
 		e.stopPropagation();
+		$(this).css("z-index", 5);
 		var table = $($(this).parents("div")[1]).attr("id");
 		var field = $(this).attr("id");
 		$("#" + table).removeClass("hover_table");
@@ -1024,20 +1026,38 @@
 	});
 
 	key("ctrl+x", function(){
-		detachedField = $("#" + current.table + " #" + current.field.split(".")[1]).detach();
-		detachedFieldTable = current.table;
+		detachedFields = [];
+		if(getObjectLength(selectedTables) === 1){
+			var tableFields = getTableFields(current.table, 1);
+			for(var row in tableFields){
+				var field = tableFields[row];
+				detachedFields.push($("#" + current.table + " #" + field).detach());
+			}
+		
+			detachedFieldTable = current.table;
+		}else{
+			errorMessage("You can only select one table while transferring fields");
+		}
 	});
 
 	key("ctrl+v", function(){
-		detachedField.appendTo($("#" + current.table)).removeClass("active_field");
+		var expanded_fields = [];
 		var tableName = current.table;
-		var fieldName = detachedField.attr("id");
+		var drop_fields = [];
 
-		var field = $.trim($("#" + tableName + " #" + fieldName + " input").val());
-		field = expandString(shortRegex, field);
+		for(var row in detachedFields){
+			var fieldID = $(detachedFields[row]).attr("id");
+		  var field = $.trim($(detachedFields[row]).find('input').val());
+			field = expandString(shortRegex, field);
 
-		updateTable("add_field", current.table, "", field);
-		dropField(detachedFieldTable, fieldName, 0);
+			expanded_fields.push(field);
+			drop_fields.push(fieldID);
+
+			$(detachedFields[row]).appendTo($("#" + current.table + " .tbl_fields")).removeClass("active_field");
+		}
+
+		updateTable("add_field", current.table, "", expanded_fields);
+		dropField(detachedFieldTable, drop_fields, 0);
 	});
 
 
