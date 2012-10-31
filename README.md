@@ -14,7 +14,7 @@ This application will be used for quick database schema generation and visualiza
 - Generating Select Queries from multiple tables
 - Generating Update, Delete and Insert queries on a single table
 - Adding of where clause to queries
-- Transferring of fields from one table to another (only one field is possible at this time)
+- Transferring 1 or more fields from one table to another (only fields from a single table can be selected)
 
 
 ##Current Issues
@@ -138,12 +138,8 @@ The following shortcuts for field definitions are used in the app.
 ##Todo
 
 - Improve response messages. Currently the application does not issue an error if the operation cannot be performed or something went wrong
-- Ordering of fields
 - Visualization on which tables are connected and which fields connects the tables
-- Dropping database 
 - Transferring current fields from current table to another
 - Populating the database with values
-- When selecting from multiple tables put an alias for fields with the same name (tablename + fieldname)
 - Adding functions like COUNT and MD5 in queries
-- Deselecting tables when click the second time
 - Visual Representation on which is the primary key, foreign key, unique key in the table

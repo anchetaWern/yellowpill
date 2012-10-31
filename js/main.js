@@ -477,7 +477,7 @@
 			var tableselectedfield_count = $('#' + currentTable + ' .active_field').length;
 
 			if(tablefield_count === tableselectedfield_count){
-				query += "* FROM " + currentTable;
+				query += "* ";
 
 			}else{
 				for(var field in selectedFields){
@@ -989,16 +989,30 @@
 		selectedFields = getSelectedFields();
 	});
 
+	var deselectTablesWithoutSelectedFields = function(){
+		for(var tbl in selectedTables){
+		 if($('#' + tbl + ' .active_field').length === 0){
+		 	$('#' + tbl).removeClass("active_table");
+		 }
+		}
+		selectedTables = getSelectedTables();
+	};
+
 	key("alt+s", function(){
-		if(getObjectLength(selectedTables) >= 1){
+		if(getObjectLength(selectedTables) >= 1 && getObjectLength(selectedFields) >= 1){
+			deselectTablesWithoutSelectedFields();
+			if(!$("#" + current.table).is(".active_table") && $(".active_table").length === 1){
+				current.table = $(".active_table").attr("id");
+			}
+			console.log(current.table);
 			selectQuery(selectedTables, selectedFields, current.table);
 		}else{
-			errorMessage("Please select one or more tables");
+			errorMessage("Please select 1 or more tables and fields for a select query");
 		}
 	});
 
 	key("alt+u", function(){
-		if(getObjectLength(selectedTables) === 1){
+		if(getObjectLength(selectedTables) === 1 && getObjectLength(selectedFields) >= 1){
 			updateQuery("update", current.table, selectedFields);
 		}else{
 			errorMessage("You can only select 1 table for an update query");
@@ -1006,10 +1020,10 @@
 	});
 
 	key("alt+i", function(){
-		if(getObjectLength(selectedTables) === 1){
+		if(getObjectLength(selectedTables) === 1 && getObjectLength(selectedFields) >= 1){
 			updateQuery("insert", current.table, selectedFields);
 		}else{
-			errorMessage("You can only select 1 table for an insert query");
+			errorMessage("You can only select 1 table and 1 or more fields for an insert query");
 		}
 	});
 
@@ -1036,7 +1050,7 @@
 		
 			detachedFieldTable = current.table;
 		}else{
-			errorMessage("You can only select one table while transferring fields");
+			errorMessage("You can only select 1 table while transferring fields");
 		}
 	});
 
