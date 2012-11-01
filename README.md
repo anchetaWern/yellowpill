@@ -165,3 +165,11 @@ Here are some of the terms that I've used:
 - Populating the database with values
 - Adding functions like COUNT and MD5 in queries
 - Visual Representation on which is the primary key, foreign key, unique key in the table
+- Add function that checks default data
+- Add function that checks if primary key already exists for that table
+- Add function to check if a field is a base field
+- Ability to choose whether to use ```LIKE``` or ```=``` when constructing ```WHERE``` clause
+- Using ```LIMIT``` and ```OFFSET```
+- Ability to choose whether to use ```AND``` or ```OR``` on ```WHERE``` clause
+- ```ORDER BY``` and ```GROUP BY```
+- Adding of Indexes to fields
