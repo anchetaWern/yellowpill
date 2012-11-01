@@ -11,6 +11,7 @@ $databases = $db->query("
 <link rel="stylesheet" href="libs/foundation/stylesheets/foundation.css"/>
 <link rel="stylesheet" href="libs/noty/css/jquery.noty.css">
 <link rel="stylesheet" href="libs/noty/css/noty_theme_default.css"/>
+<link rel="stylesheet" href="css/font-awesome.css"/>
 
 <div id="container">
 	<h1>YellowPill</h1>
@@ -40,6 +41,35 @@ $databases = $db->query("
 			<label for="query_string">Query String</label>
 			<textarea id="query_string">
 			</textarea>
+
+			<div class="join_types">
+				<label>Join type</label>
+				<label for="where_join">
+					<input type="radio" name="join" id="where_join" checked/>
+					Where Join
+				</label>
+
+				<label for="inner_join">
+					<input type="radio" name="join" id="inner_join"/>
+					Inner Join
+				</label>
+
+				<label for="left_join">
+					<input type="radio" name="join" id="left_join"/>
+					Left Join
+				</label>
+
+				<label for="outer_join">
+					<input type="radio" name="join" id="outer_join"/>
+					Outer Join
+				</label>
+			</div>
+
+			<div class="parent_table_container">
+				<label>Main Table</label>
+				<select id="parent_table" class="parent_table"></select>
+			</div>
+
 		</div>
 		<label for="">Query Options</label>
 		<div class="query_options">
@@ -100,6 +130,26 @@ $databases = $db->query("
 
 		</div>
 		<input type="button" class="medium button" id="add_link" value="Link tables">
+	</div><!--/#link_modal-->
+
+	<div id="join_modal" class="reveal-modal medium">
+		<h4>Join Tables</h4>
+		<a class="close-reveal-modal">&#215;</a>
+		<div class="join_fields">
+			<div class="main_table" id="main_table">
+				
+			</div>
+
+			<div class="left_table">
+				
+			</div>
+
+			<div class="right_table">
+				
+			</div>
+
+		</div>
+		<input type="button" class="medium button" id="add_join" value="Join tables">
 	</div><!--/#join_modal-->
 
 </div><!--/.container-->

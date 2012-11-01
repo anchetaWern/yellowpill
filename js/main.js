@@ -338,9 +338,7 @@
 			{"action" : "create_tbl", "table" : currentTable, "fields" : expanded_field},
 			function(response){
 				if(response === 1){
-					console.log("Created Table");
-					noty_success.text = "Successfully created table!";
-					noty(noty_success);
+					successMessage("Successfully created table!")
 				}else{
 					errorMessage("Something went wrong while creating the table");
 				}
@@ -353,13 +351,9 @@
 			"invoker.php", 
 			{"action" : "drop_tbl", "table" : currentTable},
 			function(response){
-				console.log(response);
 				if(response == 1){
-
 					$('#' + currentTable).remove();
-					noty_success.text = "Successfully dropped table!";
-					noty(noty_success);
-					
+					successMessage("Successfully dropped table!");
 				}else{
 					errorMessage("The table cannot be dropped, please check if it has connection with the others");
 				}
@@ -390,16 +384,15 @@
 			"old_field" : oldField, "new_field" : currentField
 			},
 			function(response){
-				console.log(response);
+				
 				if(response == 1){
 					if(action == "add_field"){
 						successMessage("Successfully added field");
 					}else if(action == "modify_field"){
-						noty_success.text = "Successfully modified table!";
-						noty(noty_success);
+						successMessage("Successfully modified table!");
 					}
 				}else{
-					errorMessage("");
+					errorMessage("Something went wrong while trying to update the table");
 				}
 			}
 		);
@@ -490,7 +483,7 @@
 		return current.table;
 	};
 
-	var selectQuery = function(selectedTables, selectedFields, currentTable){ //generates an sql select query
+	var selectQuery = function(selectedTables, selectedFields, currentTable, joinType){ //generates an sql select query
 		var query = "SELECT ";
 		var number_of_tables = getObjectLength(selectedTables);
 		var number_of_fields = getObjectLength(selectedFields);
@@ -613,9 +606,9 @@
 		var field_values = $(".field_values");
 		var custom_values = $(".custom_values");
 
-		var selectfield_header = $("<h6>").text("Selected Fields");
-		var fieldvalue_header = $("<h6>").text("Field Values");
-		var customvalue_header = $("<h6>").text("Custom Values");
+		var selectfield_header = $("<label>").text("Selected Fields");
+		var fieldvalue_header = $("<label>").text("Field Values");
+		var customvalue_header = $("<label>").text("Custom Values");
 
 		var select_field1 = $("<select>").addClass("select_field1");
 		var select_field2 = $("<select>").addClass("select_field2");
@@ -820,68 +813,70 @@
 		selectedFields = getSelectedFields();
 	});
 
+	var generateLinkTables = function(leftTable, rightTable, mainTable, leftSelect, rightSelect, mainSelect, selectPrefix, modalID){
+		var table1 = $("." + leftTable);
+		var table2 = $("." + rightTable);
+		var table3 = $("." + mainTable);
+
+		var mainHeader = $("<label>").text("Main table");
+		var select1 = $("<select>").attr({"name" : leftSelect});
+		var select2 = $("<select>").attr({"name" : rightSelect});
+		var select3 = $("<select>").attr({"name" : mainSelect, "id" : mainSelect});
+
+		table1.empty();
+		table2.empty();
+		table3.empty();
+
+		$(".active_table").each(function(index, val){
+			var table = $(this).attr("id");
+			var fields = getTableFields(table);
+			var fieldCount = fields.length;
+
+			var header = $("<label>").text(table);
+			var tableOption = $("<option>").attr({"value" : table}).text(table);
+			select3.append(tableOption);
+
+			if(index === 0){
+				select1.attr("id", selectPrefix + table);
+				table1.append(header);
+				for(var x = 0; x < fieldCount; x++){
+					var fieldName = fields[x];
+					var option = $("<option>").attr({"value" : fieldName}).text(fieldName);
+					select1.append(option);
+				}
+				
+
+			}else{
+				select2.attr("id", selectPrefix + table);
+				table2.append(header);
+				for(var x = 0; x < fieldCount; x++){
+					var fieldName = fields[x];
+					var option = $("<option>").attr({"value" : fieldName}).text(fieldName);
+					select2.append(option);
+				}
+				
+			}
+		});
+
+		table3.append(mainHeader);
+		table3.append(select3);
+
+		table1.append(select1);
+		table2.append(select2);
+
+		
+		$("#" + modalID).reveal();
+	};
+
 	key("j", function(){
 
 		var activetable_count = $(".active_table").length;
 	
 		if(activetable_count === 2){
-			var table1 = $(".table1");
-			var table2 = $(".table2");
-			var table3 = $(".table3");
-
-			var mainHeader = $("<label>").text("Main table");
-			var select1 = $("<select>").attr({"name" : "select1"});
-			var select2 = $("<select>").attr({"name" : "select2"});
-			var select3 = $("<select>").attr({"name" : "select3", "id" : "select3"});
-
-			table1.empty();
-			table2.empty();
-			table3.empty();
-
-			$(".active_table").each(function(index, val){
-				var table = $(this).attr("id");
-				var fields = getTableFields(table);
-				var fieldCount = fields.length;
-
-				var header = $("<label>").text(table);
-				var tableOption = $("<option>").attr({"value" : table}).text(table);
-				select3.append(tableOption);
-
-				if(index === 0){
-					select1.attr("id", "join_" + table);
-					table1.append(header);
-					for(var x = 0; x <= fieldCount; x++){
-						var fieldName = fields[x];
-						var option = $("<option>").attr({"value" : fieldName}).text(fieldName);
-						select1.append(option);
-					}
-					
-
-				}else{
-					select2.attr("id", "join_" + table);
-					table2.append(header);
-					for(var x = 0; x <= fieldCount; x++){
-						var fieldName = fields[x];
-						var option = $("<option>").attr({"value" : fieldName}).text(fieldName);
-						select2.append(option);
-					}
-					
-				}
-			});
-
-			table3.append(mainHeader);
-			table3.append(select3);
-
-			table1.append(select1);
-			table2.append(select2);
-
-			
-			$("#link_modal").reveal();
+			generateLinkTables("table1", "table2", "table3", "select1", "select2", "select3", "join_", "link_modal");
 
 		}else{
-			noty_err.text = "Select only two tables before trying to join";
-			noty(noty_err);
-
+			errorMessage("Select only two tables before trying to join");
 		}
 	});
 
@@ -951,21 +946,25 @@
 	});
 
 	var renameTable = function(currentTableName, newTableName){
-		$.post(
-			"invoker.php", 
-			{
-				"action" : "rename_tbl", 
-				"current_table" : currentTableName, 
-				"new_table" : newTableName
-			},
-			function(response){
-				if(response == 1){
-					successMessage("Successfully renamed table");
-				}else{
-					errorMessage("Something went wrong while renaming the table");
+		if(!isExisting('has_tbl', newTableName, '')){
+			$.post(
+				"invoker.php", 
+				{
+					"action" : "rename_tbl", 
+					"current_table" : currentTableName, 
+					"new_table" : newTableName
+				},
+				function(response){
+					if(response == 1){
+						successMessage("Successfully renamed table");
+					}else{
+						errorMessage("Something went wrong while renaming the table");
+					}
 				}
-			}
-		);
+			);
+		}else{
+			errorMessage("A table with the same name already exists in the database");
+		}
 	};
 
 	var successMessage = function(msg){
@@ -1034,13 +1033,15 @@
 	};
 
 	key("alt+s", function(){
+		var joinType = $('input[name=join]:checked').attr('id');
+
 		if(getObjectLength(selectedTables) >= 1 && getObjectLength(selectedFields) >= 1){
 			deselectTablesWithoutSelectedFields();
 			if(!$("#" + current.table).is(".active_table") && $(".active_table").length === 1){
 				current.table = $(".active_table").attr("id");
 			}
 			console.log(current.table);
-			selectQuery(selectedTables, selectedFields, current.table);
+			selectQuery(selectedTables, selectedFields, current.table, joinType);
 		}else{
 			errorMessage("Please select 1 or more tables and fields for a select query");
 		}
@@ -1107,6 +1108,20 @@
 
 		updateTable("add_field", current.table, "", expanded_fields);
 		dropField(detachedFieldTable, drop_fields, 0);
+	});
+
+	key("alt+j", function(){
+		var activetable_count = $(".active_table").length;
+	
+		if(activetable_count === 2){
+			generateLinkTables("left_table", "right_table", "main_table", "left_select", "right_select", "main_select", "link_", "join_modal");
+		}else{
+			errorMessage("Select only two tables before trying to join");
+		}
+	});
+
+	$("#add_join").live("click", function(){
+
 	});
 
 

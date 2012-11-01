@@ -49,7 +49,7 @@
   padding: 20px;
   border: 1px solid grey;
   background-color: ghostwhite;
-  height: 160px;
+  height: 242px;
 }
 
 .hover_field, .hover_option{
@@ -113,7 +113,7 @@
     margin-left: 20px;
 }
 
-#where_modal h6{
+#where_modal label{
 	float: left;
 }
 
@@ -134,15 +134,31 @@
   height: 36px;
 }
 
-#table3 {
+#table3, #main_table {
   width: 411px;
   margin-bottom: 10px;
 }
 
-#table3 select {
+#table3 select, #main_table select {
    width: 200px;
 }
 
-#add_link {
+#add_link, #add_join {
   margin-top: 20px;
+  float: right;
+}
+
+.join_types label {
+    float: left;
+    margin-right: 10px;
+}
+
+.parent_table_container {
+    width: 200px;
+    float: left;
+}
+.join_types {
+    float: left;
+    width: 130px;
+    margin-right: 20px;
 }

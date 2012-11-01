@@ -32,6 +32,13 @@ if(!empty($tables)){
 				<input type="text" 
 				class="field_name" 
 				value="<?php echo $field['field_name'] . ": " . $field['column_type'] . " " . $field['default_data'] . " " . $field['column_key'] . " " . $field['nullable'] . " " . $field['extra']; ?>" id="field_<?php echo $field['field_name']; ?>" placeholder="field name" data-fieldname="<?php echo $field['field_name']; ?>">
+				<?php 
+				if($field['column_key'] == "PRI"){
+				?> 
+				<i class="icon-key"></i>
+				<?php
+				}
+				?>
 			</div>
 			<?php
 			}
