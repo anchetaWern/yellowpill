@@ -14,6 +14,8 @@
 	var detachedFields = [];
 	var detachedFieldTable;
 
+	var db = {tables : []};
+
 	var noty_success = {
 		"text":"Operation was successfully completed!",
 		"layout":"top",
@@ -483,7 +485,7 @@
 		return current.table;
 	};
 
-	var selectQuery = function(selectedTables, selectedFields, currentTable, joinType){ //generates an sql select query
+	var selectQuery = function(selectedTables, selectedFields, currentTable, joinType, mainTable){ //generates an sql select query
 		var query = "SELECT ";
 		var number_of_tables = getObjectLength(selectedTables);
 		var number_of_fields = getObjectLength(selectedFields);
@@ -535,20 +537,51 @@
 			}
 
 			query += " FROM ";
-			for(var table in selectedTables){
 
-				query += selectedTables[table];
-					
-				if(number_of_tables !==  table_index){
-					query += ", ";
-				}
-				table_index++;
+			switch(joinType){
+				case "where_join":
+					for(var table in selectedTables){
+
+						query += selectedTables[table];
+							
+						if(number_of_tables !==  table_index){
+							query += ", ";
+						}
+						table_index++;
+					}
+				break;
+
+				case "inner_join": case "left_join": case "right_join":
+					query += mainTable + "\n";
+					query += getJoinQuery();
+				break;
 			}
+
 		}
 
 		updateWhereModal(selectedFields);
 		updateQueryString(query);
 		return query;
+	};
+
+	var getJoinQuery = function(){
+		var joinQuery = '';
+		var tables = db.tables;
+		console.log(db);
+		
+		for(var x in tables){
+		  var row = tables[x];
+		  
+		  var join_type = row['join_type'].replace("_", " ").toUpperCase();
+		  var main_tbl = row['main_table'];
+		  var main_fld = row['main_field'];
+		  var child_tbl = row['child_table'];
+		  var child_fld = row['child_field'];
+
+		  joinQuery += join_type + " " + child_tbl + " ON " + main_tbl + "." + main_fld + " = " + child_tbl + "." + child_fld + "\n";
+
+		}
+		return joinQuery;
 	};
 
 	var getSimilarFieldsCount = function(tablename, fieldname){
@@ -724,6 +757,7 @@
 		}
 		selectedTables = getSelectedTables();
 		selectedFields = getSelectedFields();
+		updateTableList(selectedTables);
 	});
 
 	var getTableFields = function(table, type){ //gets the active fields of a specific table
@@ -813,7 +847,7 @@
 		selectedFields = getSelectedFields();
 	});
 
-	var generateLinkTables = function(leftTable, rightTable, mainTable, leftSelect, rightSelect, mainSelect, selectPrefix, modalID){
+	var generateLinkTables = function(leftTable, rightTable, mainTable, leftSelect, rightSelect, mainSelect, selectPrefix, modalID, option){
 		var table1 = $("." + leftTable);
 		var table2 = $("." + rightTable);
 		var table3 = $("." + mainTable);
@@ -858,8 +892,10 @@
 			}
 		});
 
-		table3.append(mainHeader);
-		table3.append(select3);
+		if(option === 1){
+			table3.append(mainHeader);
+			table3.append(select3);
+		}
 
 		table1.append(select1);
 		table2.append(select2);
@@ -873,7 +909,7 @@
 		var activetable_count = $(".active_table").length;
 	
 		if(activetable_count === 2){
-			generateLinkTables("table1", "table2", "table3", "select1", "select2", "select3", "join_", "link_modal");
+			generateLinkTables("table1", "table2", "table3", "select1", "select2", "select3", "join_", "link_modal", 1);
 
 		}else{
 			errorMessage("Select only two tables before trying to join");
@@ -1034,14 +1070,15 @@
 
 	key("alt+s", function(){
 		var joinType = $('input[name=join]:checked').attr('id');
+		var mainTable = $('#parent_table').val();
 
 		if(getObjectLength(selectedTables) >= 1 && getObjectLength(selectedFields) >= 1){
 			deselectTablesWithoutSelectedFields();
 			if(!$("#" + current.table).is(".active_table") && $(".active_table").length === 1){
 				current.table = $(".active_table").attr("id");
 			}
-			console.log(current.table);
-			selectQuery(selectedTables, selectedFields, current.table, joinType);
+			
+			selectQuery(selectedTables, selectedFields, current.table, joinType, mainTable);
 		}else{
 			errorMessage("Please select 1 or more tables and fields for a select query");
 		}
@@ -1115,13 +1152,40 @@
 	
 		if(activetable_count === 2){
 			generateLinkTables("left_table", "right_table", "main_table", "left_select", "right_select", "main_select", "link_", "join_modal");
+			var main_table = $('#parent_table').val();	
+			switchTables(main_table);
 		}else{
 			errorMessage("Select only two tables before trying to join");
 		}
 	});
 
 	$("#add_join").live("click", function(){
+		var main_table = $('#parent_table').val();
+		var tbl = {};
+		tbl.main_table = main_table;
+		tbl.main_field = $('select[name=right_select]').val();
+		tbl.child_table = $('.right_table label').text();
+		tbl.child_field =  $('select[name=left_select]').val();
+		tbl.join_type = $('input[name=join]:checked').attr('id');
 
+		db.tables.push(tbl);
 	});
 
+	var switchTables = function(main_table){
+		if($('.right_table label').text() === main_table){
+			
+			var left = $('.left_table').children().detach();
+			var right = $('.right_table').children().detach();
+		 	left.appendTo($('.right_table'));
+		 	right.appendTo($('.left_table'));
+		} 
+	};
+
+	var updateTableList = function(selectedTables){
+		var parent_table = $('#parent_table').empty();
+		for(var table in selectedTables){
+			var table_option = $("<option>").text(table).val(table);
+			parent_table.append(table_option);
+		}
+	};
 

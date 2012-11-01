@@ -34,13 +34,7 @@ $databases = $db->query("
 			}
 			?>
 			<button type="button" class="small button" id="btn_connect" >Connect</button>
-		</div>
-
-		
-		<div class="queries">
-			<label for="query_string">Query String</label>
-			<textarea id="query_string">
-			</textarea>
+		</div><!--/.databases-->
 
 			<div class="join_types">
 				<label>Join type</label>
@@ -59,18 +53,24 @@ $databases = $db->query("
 					Left Join
 				</label>
 
-				<label for="outer_join">
-					<input type="radio" name="join" id="outer_join"/>
+				<label for="right_join">
+					<input type="radio" name="join" id="right_join"/>
 					Outer Join
 				</label>
-			</div>
 
-			<div class="parent_table_container">
 				<label>Main Table</label>
 				<select id="parent_table" class="parent_table"></select>
-			</div>
+			</div><!--/.join_types-->
 
-		</div>
+	
+		<div class="queries">
+			<label for="query_string">Query String</label>
+			<textarea id="query_string">
+			</textarea>
+
+	
+		</div><!--/.queries-->
+
 		<label for="">Query Options</label>
 		<div class="query_options">
 
@@ -136,10 +136,6 @@ $databases = $db->query("
 		<h4>Join Tables</h4>
 		<a class="close-reveal-modal">&#215;</a>
 		<div class="join_fields">
-			<div class="main_table" id="main_table">
-				
-			</div>
-
 			<div class="left_table">
 				
 			</div>
@@ -147,8 +143,7 @@ $databases = $db->query("
 			<div class="right_table">
 				
 			</div>
-
-		</div>
+		</div><!--/.join_fields-->
 		<input type="button" class="medium button" id="add_join" value="Join tables">
 	</div><!--/#join_modal-->
 

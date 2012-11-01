@@ -49,7 +49,7 @@
   padding: 20px;
   border: 1px solid grey;
   background-color: ghostwhite;
-  height: 242px;
+  height: 203px;
 }
 
 .hover_field, .hover_option{
@@ -79,13 +79,12 @@
 
 .query_options{
 	float: left;
-	
-	height: 130px;
-	width: 271px;
+	height: 98px;
+	width: 170px;
 }
 
 .query_options div{
-	width: 110px;
+	width: 79px;
 	height: 43px;
 	border: 1px solid lightgrey;
 	float: left;
@@ -97,7 +96,7 @@
 }
 
 .queries {
-    width: 695px;
+    width: 595px;
     height: 133px;
     float: left;
     margin-right: 20px;
@@ -159,6 +158,10 @@
 }
 .join_types {
     float: left;
-    width: 130px;
+    width: 167px;
     margin-right: 20px;
+}
+
+label[for=outer_join]{
+	margin-bottom:20px;
 }
