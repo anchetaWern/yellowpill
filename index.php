@@ -55,7 +55,7 @@ $databases = $db->query("
 
 				<label for="right_join">
 					<input type="radio" name="join" id="right_join"/>
-					Outer Join
+					Right Join
 				</label>
 
 				<label>Main Table</label>

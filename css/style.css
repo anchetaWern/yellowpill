@@ -162,6 +162,6 @@
     margin-right: 20px;
 }
 
-label[for=outer_join]{
-	margin-bottom:20px;
+label[for=right_join] {
+    margin-bottom: 20px;
 }

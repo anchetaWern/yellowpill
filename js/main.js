@@ -845,6 +845,7 @@
 
 		selectedTables = getSelectedTables();
 		selectedFields = getSelectedFields();
+		updateTableList(selectedTables);
 	});
 
 	var generateLinkTables = function(leftTable, rightTable, mainTable, leftSelect, rightSelect, mainSelect, selectPrefix, modalID, option){
@@ -1159,16 +1160,71 @@
 		}
 	});
 
-	$("#add_join").live("click", function(){
-		var main_table = $('#parent_table').val();
+	var addJoinFields = function(joinData){
 		var tbl = {};
-		tbl.main_table = main_table;
-		tbl.main_field = $('select[name=right_select]').val();
-		tbl.child_table = $('.right_table label').text();
-		tbl.child_field =  $('select[name=left_select]').val();
-		tbl.join_type = $('input[name=join]:checked').attr('id');
 
+		var main_table = $('#parent_table').val();
+
+		if(joinData){
+			tbl = joinData;
+		}else{
+			tbl.main_table = main_table;
+			tbl.main_field = $('select[name=right_select]').val();
+			tbl.child_table = $('.right_table label').text();
+			tbl.child_field =  $('select[name=left_select]').val();
+		}
+		tbl.join_type = $('input[name=join]:checked').attr('id');
 		db.tables.push(tbl);
+	};
+
+	key("l", function(){
+		var selectedTableCount = getObjectLength(selectedTables);
+		
+		
+		if(selectedTableCount === 2){
+			var tbl1_fieldcount = 0;
+			var tbl2_fieldcount = 0;
+			var index = 0;
+			for(var tbl in selectedTables){
+			  if(index === 0){
+			    tbl1_fieldcount = tbl1_fieldcount + getTableFields(tbl, 1).length;
+			  }else{
+			    tbl2_fieldcount = tbl2_fieldcount + getTableFields(tbl, 1).length;
+			   }
+			  index++;
+			}
+
+			if(tbl1_fieldcount === 1 && tbl2_fieldcount === 1){
+				var main_table = $('#parent_table').val();
+				var main_field = getTableFields(main_table, 1)[0];
+
+				var child_table;
+				var child_field;
+
+				for(var tbl in selectedTables){
+					if(tbl !== main_table){
+						child_table = tbl;
+						child_field = getTableFields(child_table, 1)[0];
+					}
+				}
+
+				var join_data = {
+					'main_table' : main_table, 'main_field' : main_field, 
+					'child_table' : child_table, 'child_field' : child_field
+				};
+
+				addJoinFields(join_data);
+				successMessage("Fields successfully added to join query");
+			}else{
+				errorMessage("Select 2 tables and a single field for each table to add fields to join query");
+			}
+		}else{
+			errorMessage("Select 2 tables and a single field for each table to add fields to join query");
+		}
+	});
+
+	$("#add_join").live("click", function(){
+		addJoinFields();
 	});
 
 	var switchTables = function(main_table){
