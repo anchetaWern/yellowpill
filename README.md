@@ -173,3 +173,20 @@ Here are some of the terms that I've used:
 - Ability to choose whether to use ```AND``` or ```OR``` on ```WHERE``` clause
 - ```ORDER BY``` and ```GROUP BY```
 - Adding of Indexes to fields
+- ```WHERE JOIN``` should utilize the fields selected for join queries
+- Add MySQL functions:
+
+```
+BETWEEN date1 AND date2
+MIN
+MAX
+AVG
+SUM
+COUNT
+UNION
+```
+
+
+##What I won't Include
+
+- MySQL functions that has an equivalent on languages like PHP, Ruby and Python

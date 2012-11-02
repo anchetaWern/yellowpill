@@ -165,3 +165,19 @@
 label[for=right_join] {
     margin-bottom: 20px;
 }
+
+.orderby_container div {
+    float: left;
+    width: 200px;
+    margin-right: 20px;
+}
+.orderby_container {
+    height: 79px;
+}
+.reveal-modal .button {
+    float: right;
+}
+
+#group_by {
+    margin-top: 20px;
+}

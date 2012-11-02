@@ -147,6 +147,42 @@ $databases = $db->query("
 		<input type="button" class="medium button" id="add_join" value="Join tables">
 	</div><!--/#join_modal-->
 
+	<div id="orderby_modal" class="reveal-modal medium">
+		<h4>Order By</h4>
+		<a class="close-reveal-modal">&#215;</a>
+		
+			<div class="orderby_container">
+				<div class="orderby_field">
+					<label for="order_field">Order By</label>
+					<select name="order_field" id="order_field">
+						
+					</select>
+				</div><!--/.orderby_field-->
+
+				<div class="orderby_option">
+					<label for="field_order">Field Order</label>
+					<select name="field_order" id="field_order">
+						<option value="ASC">ASC</option>
+						<option value="DESC">DESC</option>
+					</select>
+				</div><!--/.orderby_option-->
+			</div><!--/.orderby_container-->
+		<input type="button" class="medium button" id="order_by" value="Add Order By">
+	</div><!--/#orderby_modal-->
+
+	<div id="groupby_modal" class="reveal-modal medium">
+		<h4>Group By</h4>
+		<a class="close-reveal-modal">&#215;</a>
+
+		<div class="groupby_field">
+			<select name="group_field" id="group_field">
+				
+			</select>
+		</div><!--/.groupby_field-->
+
+		<input type="button" class="medium button" id="group_by" value="Add Group By">
+	</div><!--/#groupby_modal-->
+
 </div><!--/.container-->
 
 <script src="js/jquery.js"></script>

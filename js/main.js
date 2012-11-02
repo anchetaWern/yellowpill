@@ -674,7 +674,7 @@
 		var where_regex = /where/ig
 
 		if(!where_regex.test(query)){
-			query += " WHERE ";
+			query += "\nWHERE ";
 		}else{
 			query += " AND ";
 		}
@@ -699,6 +699,7 @@
 		query += where + " = " + value;
 		$("#query_string").val(query);
 		$(".custom_value").val("");
+		$("#where_modal").trigger('reveal:close');
 	});
 
 	var addJoinTable = function(table){
@@ -757,6 +758,7 @@
 		}
 		selectedTables = getSelectedTables();
 		selectedFields = getSelectedFields();
+		console.log(selectedFields);
 		updateTableList(selectedTables);
 	});
 
@@ -935,6 +937,7 @@
 		var childField = $('#join_' + childTable).val();
 
 		joinTables(mainTable, childTable, mainField, childField);
+		$("#link_modal").trigger('reveal:close');
 	});
 
 	key("t", function(){
@@ -1073,6 +1076,7 @@
 		var joinType = $('input[name=join]:checked').attr('id');
 		var mainTable = $('#parent_table').val();
 
+		selectedFields = getSelectedFields();
 		if(getObjectLength(selectedTables) >= 1 && getObjectLength(selectedFields) >= 1){
 			deselectTablesWithoutSelectedFields();
 			if(!$("#" + current.table).is(".active_table") && $(".active_table").length === 1){
@@ -1086,6 +1090,7 @@
 	});
 
 	key("alt+u", function(){
+		selectedFields = getSelectedFields();
 		if(getObjectLength(selectedTables) === 1 && getObjectLength(selectedFields) >= 1){
 			updateQuery("update", current.table, selectedFields);
 		}else{
@@ -1094,6 +1099,7 @@
 	});
 
 	key("alt+i", function(){
+		selectedFields = getSelectedFields();
 		if(getObjectLength(selectedTables) === 1 && getObjectLength(selectedFields) >= 1){
 			updateQuery("insert", current.table, selectedFields);
 		}else{
@@ -1102,6 +1108,7 @@
 	});
 
 	key("alt+x", function(){
+		selectedFields = getSelectedFields();
 		if(getObjectLength(selectedTables) === 1){
 			deleteQuery(current.table);
 		}else{
@@ -1225,6 +1232,7 @@
 
 	$("#add_join").live("click", function(){
 		addJoinFields();
+		$("#join_modal").trigger('reveal:close');
 	});
 
 	var switchTables = function(main_table){
@@ -1244,4 +1252,46 @@
 			parent_table.append(table_option);
 		}
 	};
+
+	var generateSelectedFieldsOption = function(selectID){
+		var tmp_container = document.createDocumentFragment();
+    $('#' + selectID).empty();
+
+		for(var field in selectedFields){
+			var field = $("<option>").text(field).val(field);
+			$('#' + selectID).append(field);
+
+		}
+	};
+
+	key("alt+o", function(){ //order by		
+		generateSelectedFieldsOption("order_field");
+		$("#orderby_modal").reveal();
+	});
+
+	key("alt+g", function(){ //group by
+		generateSelectedFieldsOption("group_field");
+		$("#groupby_modal").reveal();
+	});
+
+	$("#order_by").live("click", function(){
+		var query_string = $.trim($("#query_string").val());
+		var order_field = $("#order_field").val();
+		var field_order = $("#field_order").val();
+
+		if(/ORDER BY/gi.test(query_string)){
+
+			var replace_order = /ORDER BY.+/gi.exec(query_string)[0];
+			query_string = query_string.replace(replace_order, "ORDER BY " + order_field + " " + field_order);
+			
+		}else{
+			query_string += "\nORDER BY " + order_field + " " + field_order;
+		}
+		
+		$("#query_string").val(query_string);  
+	});
+
+	$("#group_by").live("click", function(){
+		var query_string = $.trim($("#query_string").val());
+	});
 
