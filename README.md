@@ -23,6 +23,9 @@ This application will be used for quick database schema generation and visualiza
 - Script for creating new tables and fields executes a dozen of times
 - Cannot create new tables for newly created databases
 - UI Issues
+- The options for fields cannot be converted to its shorthand values if connecting to a database the second time
+- Event for renaming tables is executing for tables that has not been created yet
+- Error shows up when creating new tables but the table is actually created
 
 
 ##Configuration
@@ -145,6 +148,8 @@ If there is an error with the operation that you're trying to do then one of the
 - Default values for fields must have the same data type with the data type that you have defined for that specific field.
 For example if the data type is timestamp you can't have a default value of "A" or 123, instead you can have the default data as
 current timestamp ```CT```
+- Only a key from another table can be a candidate to become a foreign key for another table
+- When selecting fields for joining there should be at least one key field from the tables that were selected for joining
 
 
 ##Terms
@@ -155,6 +160,7 @@ Here are some of the terms that I've used:
 - **Child field** - a field which references a base field
 - **Base table** - a table that is referenced from another table
 - **Child table** - a table referencing another table
+- **Key Field** - a field that has been assigned with a key(primary, foreign)
 
 
 ##Todo
@@ -173,6 +179,7 @@ Here are some of the terms that I've used:
 - Ability to choose whether to use ```AND``` or ```OR``` on ```WHERE``` clause
 - ```ORDER BY``` and ```GROUP BY```
 - Adding of Indexes to fields
+- When adding foreign keys and primary keyts the tool tip and indicator should be automatically generated
 - ```WHERE JOIN``` should utilize the fields selected for join queries
 - Add MySQL functions:
 
@@ -185,7 +192,13 @@ SUM
 COUNT
 UNION
 ```
-
+- Adding indexes and fulltext:
+```
+ADD PRIMARY KEY (COLUMN)
+ADD UNIQUE (INDEX_NAME) (COLUMN list)
+ADD INDEX (INDEX_NAME) (COLUMN list)
+ADD FULLTEXT (INDEX_NAME) (COLUMN list)
+```
 
 ##What I won't Include
 
