@@ -260,6 +260,29 @@ class yp{
 
 		return $query->num_rows;
 	}
+
+	public function getFieldLink($table, $field){
+		$tablelinks = array();
+		$query = $this->db->query("
+			SELECT REFERENCED_TABLE_NAME, REFERENCED_COLUMN_NAME, TABLE_NAME, 
+			COLUMN_NAME FROM INFORMATION_SCHEMA.KEY_COLUMN_USAGE 
+			WHERE TABLE_SCHEMA = '$this->dbname' AND REFERENCED_TABLE_NAME IS NOT NULL
+			AND TABLE_NAME = '$table' AND COLUMN_NAME = '$field'
+		"); 
+
+		if($query->num_rows === 1){
+			while($row = $query->fetch_object()){
+				$tablelinks = array(
+					"main_table" => $row->REFERENCED_TABLE_NAME,
+					"main_field" => $row->REFERENCED_COLUMN_NAME,
+					"child_table" => $row->TABLE_NAME,
+					"child_field" => $row->COLUMN_NAME
+				);
+			}
+		}	
+
+		return $tablelinks;
+	}
 }
 /*
 			SELECT DISTINCT COLUMNS.COLUMN_NAME,  COLUMNS.TABLE_NAME, COLUMNS.DATA_TYPE, 

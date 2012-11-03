@@ -191,6 +191,7 @@ $databases = $db->query("
 <script src="keymaster.js"></script>
 <script src="libs/noty/js/jquery.noty.js"></script>
 <script src="libs/foundation/javascripts/jquery.foundation.reveal.js"></script>
+<script src="libs/foundation/javascripts/jquery.foundation.tooltips.js"></script>
 <script>
 	$("#btn_connect").click(function(){
 		var db = $.trim($("#db").val());
@@ -203,7 +204,7 @@ $databases = $db->query("
 						script.insertAfter(container);
 						
 					}
-					
+
 					if(typeof shortenFields != "undefined"){
 						shortenFields();
 					}

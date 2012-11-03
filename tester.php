@@ -10,5 +10,5 @@ $yp = new yp("localhost", "root", "1234", "redbean", 1);
 //echo $yp->modifyFields($table, $fields);
 //echo $yp->dropTable("tbl_awesome");
 //echo $yp->createDatabase("oroboros");
-echo $yp->dropTable("tbl_nothing");
+print_r($yp->getFieldLink("tbl_students", "course_id"));
 ?>

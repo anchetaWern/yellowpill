@@ -35,8 +35,19 @@ if(!empty($tables)){
 				<?php 
 				if($field['column_key'] == "PRI"){
 				?> 
-				<i class="icon-key"></i>
+				<strong>PK</strong>
 				<?php
+				}else if($field['column_key'] == "MUL"){
+				$field_link = $yp->getFieldLink($table, $field['field_name']);
+				
+				$main_table = $field_link['main_table'];
+				$main_field	= $field_link['main_field'];
+
+				$link_tooltip = "Main table: $main_table\nMain Field: $main_field";
+				?>
+
+				<strong class="has-tip" title="<?php echo $link_tooltip; ?>">FK</strong>
+				<?php	
 				}
 				?>
 			</div>

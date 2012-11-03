@@ -48,8 +48,8 @@ switch($action){
 	case 'join_tbl':
 		$childTable = $_POST['child_table'];
 		$mainTable = $_POST['main_table'];
-		$childField = str_replace("field_", "", $_POST['child_field']);
-		$mainField = str_replace("field_", "", $_POST['main_field']);
+		$childField = $_POST['child_field'];
+		$mainField = $_POST['main_field'];
 		echo $yp->createLink($childTable, $mainTable, $childField, $mainField);
 	break;
 

@@ -231,7 +231,8 @@
 
 	var inverted_datatypes = invert(datatypes);
 	var inverted_keys = {
-		'PRI' : 'PK'
+		'PRI' : 'PK',
+		'MUL' : 'FK'
 	};
 
 	var inverted_options = {
@@ -268,7 +269,7 @@
 
 	var shortRegex = /\b(TI|SI|MI|I|BI|B|F|DBL|DC|C|VC|TT|T|MT|LT|BIN|VBIN|TB|BL|MB|LB|D|Y|DT|TS|PT|LS|POLY|GEO|MP|MLS|MPOLY|GEOCOL|E|S|PK|FK|AI|NN|DEF|CT|TXT|XX)\b/g;
 
-	var longRegex = /\b(auto_increment)|(id=)|(TINYINT|SMALLINT|MEDIUMINT|INT|BINGINT|BIT|FLOAT|DOUBLE|DECIMAL|CHAR|VARCHAR|TINYTEXT|TEXT|MEDIUMTEXT|LONGTEXT|BINARY|VARBINARY|TINYBLOB|BLOB|MEDIUMBLOB|LONGBLOB|DATE|TIME|YEAR|DATETIME|TIMESTAMP|POINT|LINESTRING|POLYGON|GEOMETRY|MULTIPOINT|MULTILINESTRING|MULTIPOLYGON|GEOMETRYCOLLECTION|ENUM|SET|NOT NULL|DEFAULT|CURRENT_TIMESTAMP|FOREIGN KEY|YES|NO|PRI|CURRENT_TIMESTAMP)\b/g;
+	var longRegex = /\b(auto_increment)|(id=)|(TINYINT|SMALLINT|MEDIUMINT|INT|BINGINT|BIT|FLOAT|DOUBLE|DECIMAL|CHAR|VARCHAR|TINYTEXT|TEXT|MEDIUMTEXT|LONGTEXT|BINARY|VARBINARY|TINYBLOB|BLOB|MEDIUMBLOB|LONGBLOB|DATE|TIME|YEAR|DATETIME|TIMESTAMP|POINT|LINESTRING|POLYGON|GEOMETRY|MULTIPOINT|MULTILINESTRING|MULTIPOLYGON|GEOMETRYCOLLECTION|ENUM|SET|NOT NULL|DEFAULT|CURRENT_TIMESTAMP|FOREIGN KEY|YES|NO|PRI|MUL|CURRENT_TIMESTAMP)\b/g;
 
 	String.prototype.replaceArray = function(find, replace) {
 	  var replaceString = this;
@@ -317,7 +318,7 @@
 		$(".existing_tables").show();
 	};
 
-	shortenFields();
+	
 
 
 	var expandFields = function(){
@@ -559,7 +560,6 @@
 
 		}
 
-		updateWhereModal(selectedFields);
 		updateQueryString(query);
 		return query;
 	};
@@ -567,7 +567,6 @@
 	var getJoinQuery = function(){
 		var joinQuery = '';
 		var tables = db.tables;
-		console.log(db);
 		
 		for(var x in tables){
 		  var row = tables[x];
@@ -619,15 +618,13 @@
 			field_index++;
 		}
 
-		updateWhereModal();
 		updateQueryString(query);
 		return query;
 	};
 
-	var deleteQuery = function(currentTable){
+	var deleteQuery = function(currentTable, selectedFields){
 		var query = "DELETE FROM " + currentTable;
 
-		updateWhereModal();
 		updateQueryString(query);
 		return query;
 	};
@@ -931,13 +928,18 @@
 	};
 
 	$("#add_link").live("click", function(){
-		var mainTable = $("#select3").val();
-		var childTable = getChildTable(mainTable);
-		var mainField = $('#join_' + mainTable).val();
-		var childField = $('#join_' + childTable).val();
+		var key_count = getKeyCount();
+		if(key_count > 0){
+			var mainTable = $("#select3").val();
+			var childTable = getChildTable(mainTable);
+			var mainField = $('#join_' + mainTable).val();
+			var childField = $('#join_' + childTable).val();
 
-		joinTables(mainTable, childTable, mainField, childField);
-		$("#link_modal").trigger('reveal:close');
+			joinTables(mainTable, childTable, mainField, childField);
+			$("#link_modal").trigger('reveal:close');
+		}else{
+			errorMessage("There should be at least one key field");
+		}
 	});
 
 	key("t", function(){
@@ -1072,11 +1074,18 @@
 		selectedTables = getSelectedTables();
 	};
 
+	var updateQueryType = function(query_type){
+		$(".query_options div").removeClass("active_option");
+		$("." + query_type).addClass("active_option");
+	};
+
 	key("alt+s", function(){
 		var joinType = $('input[name=join]:checked').attr('id');
 		var mainTable = $('#parent_table').val();
 
+		selectedTables = getSelectedTables();
 		selectedFields = getSelectedFields();
+
 		if(getObjectLength(selectedTables) >= 1 && getObjectLength(selectedFields) >= 1){
 			deselectTablesWithoutSelectedFields();
 			if(!$("#" + current.table).is(".active_table") && $(".active_table").length === 1){
@@ -1084,43 +1093,64 @@
 			}
 			
 			selectQuery(selectedTables, selectedFields, current.table, joinType, mainTable);
+			updateQueryType("select_query");
 		}else{
 			errorMessage("Please select 1 or more tables and fields for a select query");
 		}
+
 	});
 
 	key("alt+u", function(){
+
+		selectedTables = getSelectedTables();
 		selectedFields = getSelectedFields();
+
 		if(getObjectLength(selectedTables) === 1 && getObjectLength(selectedFields) >= 1){
 			updateQuery("update", current.table, selectedFields);
+			updateQueryType("update_query");
 		}else{
 			errorMessage("You can only select 1 table for an update query");
 		}
 	});
 
 	key("alt+i", function(){
+
+		selectedTables = getSelectedTables();
 		selectedFields = getSelectedFields();
+
 		if(getObjectLength(selectedTables) === 1 && getObjectLength(selectedFields) >= 1){
 			updateQuery("insert", current.table, selectedFields);
+			updateQueryType("insert_query");
 		}else{
 			errorMessage("You can only select 1 table and 1 or more fields for an insert query");
 		}
 	});
 
 	key("alt+x", function(){
+		
+		selectedTables = getSelectedTables();
 		selectedFields = getSelectedFields();
+
 		if(getObjectLength(selectedTables) === 1){
-			deleteQuery(current.table);
+			deleteQuery(current.table, selectedFields);
+			updateQueryType("delete_query");
 		}else{
 			errorMessage("You can only select 1 table for a delete query");
 		}
 	});
 
 	key('alt+w', function(){
+
+		selectedTables = getSelectedTables();
+		selectedFields = getSelectedFields();
+		updateWhereModal(selectedFields);
 		$('#where_modal').reveal();
 	});
 
 	key("ctrl+x", function(){
+
+		selectedTables = getSelectedTables();
+
 		detachedFields = [];
 		if(getObjectLength(selectedTables) === 1){
 			var tableFields = getTableFields(current.table, 1);
@@ -1288,10 +1318,38 @@
 			query_string += "\nORDER BY " + order_field + " " + field_order;
 		}
 		
-		$("#query_string").val(query_string);  
+		$("#query_string").val(query_string); 
+		$("#orderby_modal").trigger('reveal:close'); 
 	});
 
 	$("#group_by").live("click", function(){
 		var query_string = $.trim($("#query_string").val());
+		var group_field = $("#group_field").val();
+
+		if(/GROUP BY/gi.test(query_string)){
+
+			var replace_group = /GROUP BY.+/gi.exec(query_string)[0];
+			query_string = query_string.replace(replace_group, "GROUP BY " + group_field);
+		}else{
+			query_string += "\nGROUP BY " + group_field;
+		}
+
+		$("#query_string").val(query_string);
+		$("#groupby_modal").trigger('reveal:close');
 	});
+
+	var getKeyCount = function(){
+		var key_count = 0;
+		$('.active_table .fields input').each(function(){
+			var field = $(this).val();
+			if(/(PK|FK)/gi.test(field)){
+				key_count++;
+			}
+		});
+		return key_count;
+	};
+
+	var tester = function(){
+		console.log("boom");
+	};
 
