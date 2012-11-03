@@ -184,6 +184,7 @@ $databases = $db->query("
 	</div><!--/#groupby_modal-->
 
 </div><!--/.container-->
+<div id="scriptcontainer"></div>
 
 <script src="js/jquery.js"></script>
 <script src="js/jqueryui.js"></script>
@@ -202,6 +203,11 @@ $databases = $db->query("
 						script.insertAfter(container);
 						
 					}
+					
+					if(typeof shortenFields != "undefined"){
+						shortenFields();
+					}
+					
 					
 		});
 
