@@ -35,18 +35,35 @@ if(!empty($tables)){
 				<?php 
 				if($field['column_key'] == "PRI"){
 				?> 
-				<strong>PK</strong>
+				<strong class="has-tip PK" title="PRIMARY KEY">PK</strong>
 				<?php
 				}else if($field['column_key'] == "MUL"){
-				$field_link = $yp->getFieldLink($table, $field['field_name']);
-				
-				$main_table = $field_link['main_table'];
-				$main_field	= $field_link['main_field'];
+					$field_link = $yp->getFieldLink($table, $field['field_name']);
+					
+					$main_table = $field_link['main_table'];
+					$main_field	= $field_link['main_field'];
 
-				$link_tooltip = "Main table: $main_table\nMain Field: $main_field";
+					$link_tooltip = "Main table: $main_table\nMain Field: $main_field";
+					?>
+
+					<strong class="has-tip FK" title="<?php echo $link_tooltip; ?>">FK</strong>
+				<?php	
+				}else if($field['column_key'] == "UNI"){
+				?>
+					<strong class="has-tip UNI" title="UNIQUE">UNI</strong>
+				<?php	
+				}
 				?>
 
-				<strong class="has-tip" title="<?php echo $link_tooltip; ?>">FK</strong>
+				<?php
+				$indexes = $yp->getFieldIndex($table, $field['field_name']);
+				$index_tooltip = "Indexes:\n";
+				if(!empty($indexes)){
+				foreach($indexes as $index){
+					$index_tooltip .= $index. "\n";
+				} 
+				?>
+					<strong class="has-tip IN" title="<?php echo $index_tooltip; ?>">IN</strong>
 				<?php	
 				}
 				?>

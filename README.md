@@ -26,6 +26,12 @@ This application will be used for quick database schema generation and visualiza
 - The options for fields cannot be converted to its shorthand values if connecting to a database the second time
 - Event for renaming tables is executing for tables that has not been created yet
 - Error shows up when creating new tables but the table is actually created
+- Cannot create field with timestamp data type and current timestamp as default
+- Float doesn't work
+- Cannot reorder newly created fields
+- Cannot update field name that are primary keys
+- Cannot remove excess field when creating new table
+- Cannot change the ordering of fields when the primary key is involved
 
 
 ##Configuration
@@ -48,6 +54,19 @@ define('PASSWORD', ''); //password
 0 //debug mode returns the actual query string to be executed 
 1 //executes the query
 ```
+
+##Defaults
+
+- If the database that you are trying to connect to is not yet created, it will automatically create it for you.
+After that you can just press ```t``` on your keyboard to generate new tables.
+
+- As this project is focused on getting things done quickly, every action is final by default, this means that
+if you drop a table it will drop it without asking if you really want to do it.
+
+- Queries that are executed has no backticks for escaping reserved words(E.g. ```DESC``` , ```BETWEEN```, ```SELECT```) by default. It is expected that you only use non-reserved words for field names and table names to avoid any errors in executing queries.
+For more information about reserved words https://dev.mysql.com/doc/refman/5.5/en/reserved-words.html
+
+
 
 ##How to Use
 
@@ -200,6 +219,20 @@ ADD INDEX (INDEX_NAME) (COLUMN list)
 ADD FULLTEXT (INDEX_NAME) (COLUMN list)
 ```
 
+##Gathered Data
+
+```
+PRI indicates it is a primary key 
+UNI that it is indexed with a unique constraint
+MUL that it is a regular index.
+
+info about foreign key indexes is stored in REFERENTIAL_CONSTRAINTS table
+
+table constraints like foreign key, unique key and primary key is stored in TABLE_CONSTRAINTS table
+```
+
 ##What I won't Include
 
 - MySQL functions that has an equivalent on languages like PHP, Ruby and Python
+- Privileges - setting up privileges for executing queries is beyond the scope of this app
+- Support for other mysql database engine. Only InnoDb will be supported, things like ```SPATIAL``` and ```FULLTEXT``` indexes and other features from other databases engines like ```MyISAM``` won't be included

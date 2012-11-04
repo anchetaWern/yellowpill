@@ -283,6 +283,67 @@ class yp{
 
 		return $tablelinks;
 	}
+
+	public function getFieldIndex($table, $field){ //get indexes which are not equal to primary
+		$field_indexes = array();
+		$query = $this->db->query("
+			SELECT TABLE_NAME, COLUMN_NAME, INDEX_NAME 
+			FROM INFORMATION_SCHEMA.STATISTICS WHERE TABLE_SCHEMA = '$this->dbname' 
+			AND TABLE_NAME = '$table' AND COLUMN_NAME = '$field' AND INDEX_NAME != 'PRIMARY'
+		"); 
+		
+		if($query->num_rows > 0){
+			while($row = $query->fetch_object()){
+				array_push($field_indexes, $row->INDEX_NAME);
+			}
+		}
+		return $field_indexes;
+	}
+
+
+	public function addKey($table, $field, $key_type){ //adds unique or primary keys
+		$query = "ALTER TABLE $table ADD $key_type($field)";
+		return $this->getResult($query);
+	}
+
+	public function addIndex($table, $field, $index_name){ //adds a named index to a field
+		$query = "ALTER TABLE $table ADD INDEX $index_name($field)";
+		return $this->getResult($query);
+	}
+
+	public function hasKey($table, $field, $key_type){ //checks if a field has a key and returns the properties (type of key, key name) on that key if there is 
+		$query = "
+			SELECT INFORMATION_SCHEMA.KEY_COLUMN_USAGE.COLUMN_NAME, 
+			INFORMATION_SCHEMA.TABLE_CONSTRAINTS.CONSTRAINT_NAME, INFORMATION_SCHEMA.TABLE_CONSTRAINTS.TABLE_NAME, 
+			INFORMATION_SCHEMA.CONSTRAINT_TYPE 
+			FROM TABLE_CONSTRAINTS 
+			INNER JOIN INFORMATION_SCHEMA.KEY_COLUMN_USAGE ON INFORMATION_SCHEMA.TABLE_CONSTRAINTS.TABLE_NAME = INFORMATION_SCHEMA.KEY_COLUMN_USAGE.TABLE_NAME
+			WHERE TABLE_CONSTRAINTS.TABLE_SCHEMA = '$this->dbname' AND INFORMATION_SCHEMA.TABLE_CONSTRAINTS.TABLE_NAME = '$table' AND INFORMATION_SCHEMA.KEY_COLUMN_USAGE.COLUMN_NAME = '$field'
+			AND INFORMATION_SCHEMA.KEY_COLUMN_USAGE.CONSTRAINT_NAME = INFORMATION_SCHEMA.TABLE_CONSTRAINTS.CONSTRAINT_NAME
+		";
+
+		return $this->getResult($query);
+
+	}
+
+	public function hasIndex($table, $field, $indexname){
+
+	}
+
+	public function dropForeignKey($table, $keyname){ //drops foreign key field
+		$query = "ALTER TABLE $table DROP FOREIGN KEY $keyname";
+		return $this->getResult($query);
+	}
+
+	public function dropPrimaryKey($table, $field, $data_type){ //used for dropping primary key
+		$query = "ALTER TABLE $table MODIFY $field $data_type NOT NULL, DROP PRIMARY KEY";
+		return $this->getResult($query);
+	}
+
+	public function dropIndex($table, $indexname){ //used for dropping indexes like foreign key and unique key
+		$query = "ALTER TABLE $table DROP INDEX $indexname";
+		return $this->getResult($query);
+	}
 }
 /*
 			SELECT DISTINCT COLUMNS.COLUMN_NAME,  COLUMNS.TABLE_NAME, COLUMNS.DATA_TYPE, 

@@ -183,6 +183,30 @@ $databases = $db->query("
 		<input type="button" class="medium button" id="group_by" value="Add Group By">
 	</div><!--/#groupby_modal-->
 
+	<div id="addindex_modal" class="reveal-modal medium">
+		<h4>Add Index</h4>
+		<a class="close-reveal-modal">&#215;</a>
+
+		<div id="index_container">
+			<div id="indextype_container">
+				<label for="indextype">Index Type</label>
+				<select name="indextype" id="indextype">
+					<option value="PRIMARY KEY">PRIMARY KEY</option>
+					<option value="UNIQUE">UNIQUE KEY</option>
+					<option value="INDEX">INDEX</option>
+				</select>
+			</div><!--/#indextype_container-->
+
+			<div id="indexname_container" style="display:none;">
+				<label for="indexname">Index Name</label>
+				<input type="text" name="indexname" id="indexname"/>
+			</div><!--/#indexname_container-->
+
+		</div><!--/#index_container-->
+
+		<input type="button" class="medium button" id="add_index" value="Add Index">
+	</div><!--/#addindex_modal-->
+
 </div><!--/.container-->
 <div id="scriptcontainer"></div>
 
@@ -197,7 +221,6 @@ $databases = $db->query("
 		var db = $.trim($("#db").val());
 		$(".existing_tables").load("get_db.php", {"db" : db}, function(){
 
-
 					if(typeof createField  == "undefined"){
 						var script = $("<script>").attr({"id" : "mainscript" , "src" : "js/main.js"});;
 						var container = $("#container");
@@ -207,9 +230,8 @@ $databases = $db->query("
 
 					if(typeof shortenFields != "undefined"){
 						shortenFields();
+						makeSortable();
 					}
-					
-					
 		});
 
 	});

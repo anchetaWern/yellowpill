@@ -76,5 +76,18 @@ switch($action){
 		$field = $_POST['field'];
 		echo $yp->hasField($table, $field);
 	break;
+
+	case 'add_key':
+		$table = $_POST['table'];
+		$field = $_POST['field'];
+		$key_type = $_POST['key_type'];
+
+		if($key_type == "INDEX"){
+			$index_name = $_POST['index_name'];
+			echo $yp->addIndex($table, $field, $index_name);
+		}else{
+			echo $yp->addKey($table, $field, $key_type);
+		}
+	break;
 }
 ?>

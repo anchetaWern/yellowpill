@@ -105,15 +105,32 @@
 		);
 	};
 
-	makeSortable();
+	$(".fields").live({
+		mouseenter: 
+			function(){
+				if(!$(this).is(".active_field")){
+					$(this).addClass('hover_field');
+					
+				}
+			},
+		mouseleave:
+			function(){
+				$(this).removeClass('hover_field');
+			}	
+	});
 
-	$(".table").hover(function(){
-		if(!$(this).is(".active_table")){
-			$(this).addClass('hover_table');
-			
-		}
-	}, function(){
-		$(this).removeClass('hover_table');
+	$(".table").live({
+		mouseenter:
+			function(){
+				if(!$(this).is(".active_table")){
+					$(this).addClass('hover_table');
+					
+				}
+			},
+		mouseleave:
+			function(){
+				$(this).removeClass('hover_table');
+			}	
 	});
 
 	var getSelectedTables = function(){
@@ -340,7 +357,7 @@
 			"invoker.php", 
 			{"action" : "create_tbl", "table" : currentTable, "fields" : expanded_field},
 			function(response){
-				if(response === 1){
+				if(response == 1){
 					successMessage("Successfully created table!")
 				}else{
 					errorMessage("Something went wrong while creating the table");
@@ -804,6 +821,7 @@
 	 */
 	$(".fields").live("click", function(e){
 		e.stopPropagation();
+		$(this).removeClass("hover_field");
 		$(this).css("z-index", 5);
 		var table = $($(this).parents("div")[1]).attr("id");
 		var field = $(this).attr("id");
@@ -943,6 +961,10 @@
 	});
 
 	key("t", function(){
+		$(".active_table").removeClass("active_table");
+		$(".active_field").removeClass("active_field");
+		selectedTables = getSelectedTables();
+		selectedFields = getSelectedFields();
 		generateTable();
 	});
 
@@ -987,6 +1009,15 @@
     }
 	});
 
+	var isNewTable = function(tableName){
+		var table_status = 0;
+		var field_value = $("#" + tableName + " .fields input").val();
+		if(field_value === ""){
+			table_status = 1;
+		}
+		return table_status;
+	};
+
 	var renameTable = function(currentTableName, newTableName){
 		if(!isExisting('has_tbl', newTableName, '')){
 			$.post(
@@ -1027,7 +1058,11 @@
 	$(".tbl_name").live("blur", function(){
 		current.table = $.trim($(this).val());
 		$($(this).parents("div")[1]).attr("id", current.table);
-		renameTable(old.table, current.table);
+
+		if(isNewTable(current.table) == 0){
+			renameTable(old.table, current.table);
+		}
+		
 	});
 
 	var dropField = function(tableName, fields, remove){
@@ -1049,7 +1084,7 @@
 	};
 
 	key("del", function(){
-		dropField(current.table, current.field.split(".")[1], 1);
+		dropTable(current.table);
 	});
 
 	key("s", function(){
@@ -1057,7 +1092,7 @@
 	});
 
 	key("d", function(){
-		dropTable(current.table);
+		dropField(current.table, current.field.split(".")[1], 1);
 	});
 	
 	key("a", function(){
@@ -1349,7 +1384,75 @@
 		return key_count;
 	};
 
-	var tester = function(){
-		console.log("boom");
+	var indexes = {
+		"PRIMARY KEY" : "PK",
+		"UNIQUE" : "UNI",
+		"INDEX" : "IN"
 	};
 
+	var hasTip = function(currentField, keyType){ //checks if a field has already a particular tooltip
+		return $("#" + currentField).find("." + keyType).length;
+	};
+
+	var addKey = function(key_type, currentTable, currentField, indexName){
+		$.post(
+			"invoker.php",
+			{
+			"action" : "add_key", "key_type" : key_type, 
+			"table" : currentTable, "field" : currentField,
+			"index_name" : indexName
+			},
+			function(response){
+				console.log(response);
+				if(response == 1){
+					successMessage(key_type + " was successfully added to " + currentField);
+
+					if(hasTip(currentField, indexes[key_type]) && indexes[key_type] == "IN"){
+						var current_indexes = $("#" + currentField).find("." + indexes[key_type]).attr("title");
+						current_indexes += indexName  + "\n";
+						
+						$("#" + currentField).find("." + indexes[key_type]).attr("title", current_indexes);
+					}else{
+						
+						var new_key = $("<strong>").addClass("has-tip").text(indexes[key_type]).attr("title", key_type);
+						$("#" + currentField).append(new_key);
+					}
+				}else{
+					errorMessage("Something went wrong, maybe a key with the same name already exists");
+				}
+			}
+		);
+	};
+
+	key("p", function(){
+		var currentField = (current.field).split(".")[1];
+		addKey("PRIMARY KEY", current.table, currentField);
+	});
+
+	key("i", function(){
+		$("#addindex_modal").reveal();
+	});
+
+	$("#indextype").click(function(){
+		var index_type = $(this).val();
+		if(index_type === "INDEX"){
+			$("#indexname_container").show();
+		}else{
+			$("#indexname_container").hide();
+		}
+	});
+
+	$("#add_index").click(function(){
+		var index_type = $("#indextype").val();
+		var currentField = (current.field).split(".")[1];
+		if(index_type === "INDEX"){ //for indexes
+			var index_name = $.trim($("#indexname").val());
+			addKey(index_type, current.table, currentField, index_name);
+		}else{ //for primary keys and unique keys
+			
+			addKey(index_type, current.table, currentField);
+		}
+
+		$("#addindex_modal").trigger('reveal:close');
+		$("#indexname").val("");
+	});

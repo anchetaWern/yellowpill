@@ -148,36 +148,44 @@
 }
 
 .join_types label {
-    float: left;
-    margin-right: 10px;
+  float: left;
+  margin-right: 10px;
 }
 
 .parent_table_container {
-    width: 200px;
-    float: left;
+  width: 200px;
+  float: left;
 }
 .join_types {
-    float: left;
-    width: 167px;
-    margin-right: 20px;
+  float: left;
+  width: 167px;
+  margin-right: 20px;
 }
 
 label[for=right_join] {
-    margin-bottom: 20px;
+  margin-bottom: 20px;
 }
 
 .orderby_container div {
-    float: left;
-    width: 200px;
-    margin-right: 20px;
+  float: left;
+  width: 200px;
+  margin-right: 20px;
 }
 .orderby_container {
-    height: 79px;
+  height: 79px;
 }
 .reveal-modal .button {
-    float: right;
+  float: right;
 }
 
 #group_by {
-    margin-top: 20px;
+  margin-top: 20px;
+}
+
+#index_container div {
+  margin-bottom: 10px;
+}
+
+.has-tip {
+    margin-right: 6px;
 }
