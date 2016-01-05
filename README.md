@@ -146,6 +146,12 @@ The following shortcuts for field definitions are used in the app.
 - Deselecting tables when click the second time
 - Visual Representation on which is the primary key, foreign key, unique key in the table
 
+
+##Project Status
+
+Abandonware. I no longer have any plans on improving and maintaining this project.
+
+
 ##License
 
 The MIT License (MIT) Copyright (c)
